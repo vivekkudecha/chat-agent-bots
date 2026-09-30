@@ -19,7 +19,6 @@ import {
   openCreateBotModal,
   setMobileSidebarOpen,
 } from '@/features/ui/uiSlice'
-import { ThemeSelector } from '@/components/common/ThemeSelector'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 
@@ -80,44 +79,43 @@ export const Sidebar: React.FC = () => {
       {/* Mobile backdrop */}
       {isMobileSidebarOpen ? (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-zinc-950/30 backdrop-blur-xs md:hidden"
           onClick={() => dispatch(setMobileSidebarOpen(false))}
         />
       ) : null}
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 flex w-72 flex-col bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 transition-transform duration-200 ease-in-out md:translate-x-0 ${
-          isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed md:static inset-y-0 left-0 z-50 flex w-72 flex-col bg-white border-r border-zinc-200 transition-transform duration-200 ease-in-out md:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* App Branding Header */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
+        <div className="flex h-14 items-center justify-between px-4 border-b border-zinc-200 shrink-0">
           <div
             className="flex items-center gap-2.5 cursor-pointer"
             onClick={() => dispatch(setActiveTab('home'))}
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
-              <Cpu className="h-5 w-5" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white shadow-xs">
+              <Cpu className="h-4 w-4" />
             </div>
             <div>
-              <span className="font-bold text-slate-900 dark:text-white text-base tracking-tight">
-                TataTel <span className="text-blue-600">AI</span>
+              <span className="font-semibold text-zinc-900 text-sm tracking-tight">
+                TataTel <span className="text-zinc-500 font-medium">AI</span>
               </span>
-              <p className="text-[10px] text-slate-400 font-medium">Enterprise Agent Hub</p>
+              <p className="text-[10px] text-zinc-400 font-medium">Enterprise Agent Hub</p>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => dispatch(setMobileSidebarOpen(false))}
-            className="p-1.5 text-slate-400 hover:text-slate-700 md:hidden rounded-lg cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-zinc-700 md:hidden rounded-lg cursor-pointer"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Primary Action Buttons */}
-        <div className="p-3.5 space-y-2 border-b border-slate-100 dark:border-slate-800/80">
+        <div className="p-3 space-y-1.5 border-b border-zinc-100">
           {/* Explore Organization Bots Tab Trigger */}
           <Button
             variant={activeTab === 'home' ? 'primary' : 'outline'}
@@ -126,9 +124,9 @@ export const Sidebar: React.FC = () => {
               dispatch(setActiveTab('home'))
               dispatch(setMobileSidebarOpen(false))
             }}
-            className="w-full justify-start gap-2 shadow-none font-medium"
+            className="w-full justify-start gap-2 font-medium"
           >
-            <Compass className="h-4 w-4" />
+            <Compass className="h-3.5 w-3.5" />
             <span>Explore AI Agents</span>
           </Button>
 
@@ -139,21 +137,21 @@ export const Sidebar: React.FC = () => {
             onClick={() => dispatch(openCreateBotModal())}
             className="w-full justify-start gap-2 font-medium"
           >
-            <Plus className="h-4 w-4 text-blue-600" />
+            <Plus className="h-3.5 w-3.5 text-zinc-900" />
             <span>Create Custom Bot</span>
           </Button>
         </div>
 
         {/* Search Conversations */}
-        <div className="px-3.5 py-2.5">
+        <div className="px-3 py-2.5">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
             <input
               type="text"
               placeholder="Search chat history..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 py-1.5 pl-8 pr-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600"
+              className="w-full rounded-md border border-zinc-200 bg-zinc-50/70 py-1.5 pl-8 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-950 focus:bg-white"
             />
           </div>
         </div>
@@ -163,7 +161,7 @@ export const Sidebar: React.FC = () => {
           {/* Pinned Section */}
           {pinnedConversations.length > 0 ? (
             <div>
-              <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1">
+              <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
                 <Pin className="h-2.5 w-2.5" />
                 <span>Pinned Conversations</span>
               </p>
@@ -175,14 +173,13 @@ export const Sidebar: React.FC = () => {
                     <div
                       key={conv.id}
                       onClick={() => handleSelectConv(conv.id)}
-                      className={`group relative flex items-center justify-between rounded-xl px-2.5 py-2 text-xs transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-blue-50 text-blue-800 font-semibold dark:bg-blue-950/60 dark:text-blue-300'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'
-                      }`}
+                      className={`group relative flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-all cursor-pointer ${isActive
+                          ? 'bg-zinc-100 text-zinc-950 font-semibold border border-zinc-200/80 shadow-2xs'
+                          : 'text-zinc-600 hover:bg-zinc-100/70 hover:text-zinc-900'
+                        }`}
                     >
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <Avatar fallback={bot?.avatar || 'AI'} size="sm" className="h-6 w-6 text-[10px]" />
+                        <Avatar fallback={bot?.avatar || 'AI'} size="sm" className="h-5 w-5 text-[9px]" />
                         <span className="truncate">{conv.title}</span>
                       </div>
 
@@ -190,15 +187,15 @@ export const Sidebar: React.FC = () => {
                         <button
                           type="button"
                           onClick={(e) => handleTogglePin(e, conv.id)}
-                          className="p-1 hover:text-blue-600 rounded"
+                          className="p-1 hover:text-zinc-900 rounded"
                           title="Unpin"
                         >
-                          <Pin className="h-3 w-3 fill-current text-blue-600" />
+                          <Pin className="h-3 w-3 fill-current text-zinc-900" />
                         </button>
                         <button
                           type="button"
                           onClick={(e) => handleDeleteConv(e, conv.id)}
-                          className="p-1 hover:text-red-600 rounded"
+                          className="p-1 hover:text-red-600 rounded text-zinc-400"
                           title="Delete"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -213,7 +210,7 @@ export const Sidebar: React.FC = () => {
 
           {/* Recent History Section */}
           <div>
-            <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
               Previous Conversations
             </p>
             {unpinnedConversations.length > 0 ? (
@@ -225,14 +222,13 @@ export const Sidebar: React.FC = () => {
                     <div
                       key={conv.id}
                       onClick={() => handleSelectConv(conv.id)}
-                      className={`group relative flex items-center justify-between rounded-xl px-2.5 py-2 text-xs transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-blue-50 text-blue-800 font-semibold dark:bg-blue-950/60 dark:text-blue-300'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-200'
-                      }`}
+                      className={`group relative flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-all cursor-pointer ${isActive
+                          ? 'bg-zinc-100 text-zinc-950 font-semibold border border-zinc-200/80 shadow-2xs'
+                          : 'text-zinc-600 hover:bg-zinc-100/70 hover:text-zinc-900'
+                        }`}
                     >
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <Avatar fallback={bot?.avatar || 'AI'} size="sm" className="h-6 w-6 text-[10px]" />
+                        <Avatar fallback={bot?.avatar || 'AI'} size="sm" className="h-5 w-5 text-[9px]" />
                         <span className="truncate">{conv.title}</span>
                       </div>
 
@@ -240,7 +236,7 @@ export const Sidebar: React.FC = () => {
                         <button
                           type="button"
                           onClick={(e) => handleTogglePin(e, conv.id)}
-                          className="p-1 hover:text-blue-600 rounded text-slate-400"
+                          className="p-1 hover:text-zinc-900 rounded text-zinc-400"
                           title="Pin conversation"
                         >
                           <Pin className="h-3 w-3" />
@@ -248,7 +244,7 @@ export const Sidebar: React.FC = () => {
                         <button
                           type="button"
                           onClick={(e) => handleDeleteConv(e, conv.id)}
-                          className="p-1 hover:text-red-600 rounded text-slate-400"
+                          className="p-1 hover:text-red-600 rounded text-zinc-400"
                           title="Delete"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -259,7 +255,7 @@ export const Sidebar: React.FC = () => {
                 })}
               </div>
             ) : (
-              <div className="px-2 py-4 text-center text-xs text-slate-400">
+              <div className="px-2 py-4 text-center text-xs text-zinc-400">
                 {searchQuery ? 'No matching history' : 'No previous conversations'}
               </div>
             )}
@@ -267,21 +263,18 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between">
+        <div className="p-3 border-t border-zinc-200 bg-zinc-50/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-xs">
+            <div className="h-7 w-7 rounded-md bg-zinc-200 text-zinc-800 flex items-center justify-center font-bold text-[11px]">
               TT
             </div>
             <div className="text-left">
-              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight">
+              <p className="text-xs font-semibold text-zinc-800 leading-tight">
                 Enterprise User
               </p>
-              <p className="text-[10px] text-slate-400">TataTel Organization</p>
+              <p className="text-[10px] text-zinc-400">TataTel Organization</p>
             </div>
           </div>
-
-          {/* Theme Palette Switcher */}
-          <ThemeSelector />
         </div>
       </aside>
     </>

@@ -31,7 +31,7 @@ export function App() {
   }, [activeConversation, allBots, organizationBots])
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans antialiased text-slate-900 dark:text-slate-100">
+    <div className="flex h-screen w-screen overflow-hidden bg-zinc-50/60 font-sans antialiased text-zinc-900">
       {/* Left Sidebar */}
       <Sidebar />
 
@@ -45,7 +45,7 @@ export function App() {
             <BotListGrid />
           ) : (
             /* Screen 1: AI Chat Screen */
-            <div className="flex-1 flex flex-col h-full overflow-hidden bg-slate-50/50 dark:bg-slate-950">
+            <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-50/40">
               <ChatHeader bot={activeBot} conversation={activeConversation} />
               <ChatMessages
                 conversation={activeConversation}

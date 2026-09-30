@@ -12,10 +12,10 @@ export const Badge: React.FC<BadgeProps> = ({
   ...props
 }) => {
   const variantStyles = {
-    default: 'bg-slate-100 text-slate-800 border-slate-200',
-    royal: 'bg-blue-50 text-blue-700 border-blue-200/80 font-medium',
-    secondary: 'bg-slate-100 text-slate-600 border-transparent',
-    outline: 'border border-slate-200 text-slate-700 bg-white',
+    default: 'bg-zinc-100 text-zinc-800 border-zinc-200',
+    royal: 'bg-zinc-900 text-zinc-50 border-zinc-900 font-medium',
+    secondary: 'bg-zinc-100 text-zinc-700 border-zinc-200/80',
+    outline: 'border border-zinc-200 text-zinc-700 bg-white',
     success: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
     amber: 'bg-amber-50 text-amber-700 border-amber-200 font-medium',
   }

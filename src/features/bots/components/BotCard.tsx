@@ -35,7 +35,7 @@ export const BotCard: React.FC<BotCardProps> = ({ bot }) => {
   }
 
   return (
-    <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm transition-all duration-200 hover:border-blue-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-blue-600/50">
+    <div className="group relative flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-xs transition-all duration-200 hover:border-zinc-400 hover:shadow-md">
       {/* Top Header */}
       <div>
         <div className="flex items-start justify-between gap-3">
@@ -43,11 +43,11 @@ export const BotCard: React.FC<BotCardProps> = ({ bot }) => {
             <Avatar fallback={bot.avatar} size="lg" status="online" />
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                <h3 className="font-semibold text-zinc-900 group-hover:text-zinc-950 transition-colors text-sm sm:text-base">
                   {bot.name}
                 </h3>
               </div>
-              <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mt-0.5">
+              <p className="text-xs font-medium text-zinc-500 mt-0.5">
                 {bot.role}
               </p>
             </div>
@@ -61,7 +61,7 @@ export const BotCard: React.FC<BotCardProps> = ({ bot }) => {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                className="p-1.5 text-zinc-400 hover:text-red-600 rounded-md hover:bg-red-50 transition-colors cursor-pointer"
                 title="Delete Custom Bot"
               >
                 <Trash2 className="h-4 w-4" />
@@ -71,27 +71,27 @@ export const BotCard: React.FC<BotCardProps> = ({ bot }) => {
         </div>
 
         {/* Description */}
-        <p className="mt-3.5 text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+        <p className="mt-3 text-xs sm:text-sm text-zinc-600 line-clamp-2 leading-relaxed">
           {bot.description}
         </p>
 
         {/* Knowledge Base attachment badge */}
         {bot.knowledgeFiles && bot.knowledgeFiles.length > 0 ? (
-          <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
-            <FileText className="h-3.5 w-3.5 text-blue-600" />
-            <span className="font-medium text-slate-700 dark:text-slate-300">
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-zinc-600 bg-zinc-50 px-2.5 py-1.5 rounded-md border border-zinc-200/80">
+            <FileText className="h-3.5 w-3.5 text-zinc-800" />
+            <span className="font-semibold text-zinc-800">
               {bot.knowledgeFiles.length} file{bot.knowledgeFiles.length > 1 ? 's' : ''} trained
             </span>
-            <span className="text-slate-400">•</span>
-            <span className="truncate max-w-[150px]">{bot.knowledgeFiles[0].name}</span>
+            <span className="text-zinc-300">•</span>
+            <span className="truncate max-w-[140px] text-zinc-500">{bot.knowledgeFiles[0].name}</span>
           </div>
         ) : null}
 
         {/* Starter Prompts */}
         {bot.suggestedPrompts && bot.suggestedPrompts.length > 0 ? (
           <div className="mt-4 space-y-1.5">
-            <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              <Sparkles className="h-3 w-3 text-blue-500" />
+            <div className="flex items-center gap-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+              <Sparkles className="h-3 w-3 text-zinc-600" />
               <span>Suggested starters</span>
             </div>
             <div className="flex flex-col gap-1.5">
@@ -100,7 +100,7 @@ export const BotCard: React.FC<BotCardProps> = ({ bot }) => {
                   key={idx}
                   type="button"
                   onClick={() => handleStartChat(prompt)}
-                  className="text-left text-xs text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 bg-slate-50 dark:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-blue-100 dark:hover:border-blue-900 truncate cursor-pointer"
+                  className="text-left text-xs text-zinc-600 hover:text-zinc-950 bg-zinc-50 hover:bg-zinc-100 px-3 py-1.5 rounded-md transition-colors border border-zinc-200/60 hover:border-zinc-300 truncate cursor-pointer"
                 >
                   "{prompt}"
                 </button>
@@ -111,15 +111,15 @@ export const BotCard: React.FC<BotCardProps> = ({ bot }) => {
       </div>
 
       {/* Action Footer */}
-      <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+      <div className="mt-5 pt-3.5 border-t border-zinc-100 flex items-center justify-between">
+        <span className="text-xs text-zinc-400 font-medium">
           {bot.category}
         </span>
         <Button
           variant="primary"
           size="sm"
           onClick={() => handleStartChat()}
-          className="group/btn gap-1.5"
+          className="group/btn gap-1.5 text-xs"
         >
           <MessageSquare className="h-3.5 w-3.5" />
           <span>Chat with Bot</span>

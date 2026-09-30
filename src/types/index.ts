@@ -38,4 +38,4 @@ export interface Conversation {
   isPinned?: boolean
 }
 
-export type ThemePreset = 'royal' | 'navy' | 'cobalt'
+export type ThemePreset = 'minimal' | 'royal' | 'navy' | 'cobalt'

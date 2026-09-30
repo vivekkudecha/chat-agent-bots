@@ -19,13 +19,13 @@ export const AppNavbar: React.FC = () => {
   const activeBot = activeConv ? allBots.find((b) => b.id === activeConv.botId) : null
 
   return (
-    <header className="h-16 border-b border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
+    <header className="h-14 border-b border-zinc-200 bg-white/95 backdrop-blur px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
       {/* Left: Mobile Sidebar Toggle + Breadcrumb / Active Screen title */}
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => dispatch(toggleMobileSidebar())}
-          className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 md:hidden transition-colors cursor-pointer"
+          className="p-2 text-zinc-500 hover:text-zinc-900 rounded-lg hover:bg-zinc-100 md:hidden transition-colors cursor-pointer"
           title="Open Menu"
         >
           <Menu className="h-5 w-5" />
@@ -33,7 +33,7 @@ export const AppNavbar: React.FC = () => {
 
         <div className="flex items-center gap-2">
           {activeTab === 'home' ? (
-            <span className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white">
+            <span className="font-semibold text-xs sm:text-sm text-zinc-900 tracking-tight">
               Organization AI Agents
             </span>
           ) : (
@@ -41,12 +41,12 @@ export const AppNavbar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => dispatch(setActiveTab('home'))}
-                className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+                className="text-zinc-500 hover:text-zinc-900 font-medium cursor-pointer"
               >
                 Bots
               </button>
-              <span className="text-slate-300 dark:text-slate-600">/</span>
-              <span className="font-semibold text-slate-900 dark:text-white">
+              <span className="text-zinc-300">/</span>
+              <span className="font-semibold text-zinc-900 tracking-tight">
                 {activeBot?.name || 'Active Chat'}
               </span>
             </div>
@@ -56,14 +56,14 @@ export const AppNavbar: React.FC = () => {
 
       {/* Right: Tab Navigation Switchers and Actions */}
       <div className="flex items-center gap-2">
-        <div className="hidden sm:flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+        <div className="hidden sm:flex items-center p-1 rounded-lg bg-zinc-100 border border-zinc-200">
           <button
             type="button"
             onClick={() => dispatch(setActiveTab('home'))}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'home'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 shadow-sm'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200/80'
+                : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
             <Compass className="h-3.5 w-3.5" />
@@ -72,10 +72,10 @@ export const AppNavbar: React.FC = () => {
           <button
             type="button"
             onClick={() => dispatch(setActiveTab('chat'))}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'chat'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 shadow-sm'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200/80'
+                : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
             <MessageSquare className="h-3.5 w-3.5" />
@@ -87,7 +87,7 @@ export const AppNavbar: React.FC = () => {
           variant="primary"
           size="sm"
           onClick={() => dispatch(openCreateBotModal())}
-          className="gap-1.5 text-xs"
+          className="gap-1.5 text-xs font-semibold"
         >
           <Plus className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">New Custom Bot</span>

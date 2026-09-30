@@ -13,7 +13,7 @@ const initialState: UIState = {
   activeTab: 'home',
   isCreateBotModalOpen: false,
   isMobileSidebarOpen: false,
-  themePreset: 'royal',
+  themePreset: 'minimal',
   isDarkMode: false,
 }
 
@@ -39,7 +39,8 @@ export const uiSlice = createSlice({
     setThemePreset: (state, action: PayloadAction<ThemePreset>) => {
       state.themePreset = action.payload
       if (typeof document !== 'undefined') {
-        if (action.payload === 'royal') {
+        document.documentElement.classList.remove('dark')
+        if (action.payload === 'minimal' || action.payload === 'royal') {
           document.documentElement.removeAttribute('data-theme')
         } else {
           document.documentElement.setAttribute('data-theme', action.payload)
@@ -47,13 +48,10 @@ export const uiSlice = createSlice({
       }
     },
     toggleDarkMode: (state) => {
-      state.isDarkMode = !state.isDarkMode
+      // Light mode only requirement - enforce false
+      state.isDarkMode = false
       if (typeof document !== 'undefined') {
-        if (state.isDarkMode) {
-          document.documentElement.classList.add('dark')
-        } else {
-          document.documentElement.classList.remove('dark')
-        }
+        document.documentElement.classList.remove('dark')
       }
     },
   },

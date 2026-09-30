@@ -125,8 +125,8 @@ export const CreateBotModal: React.FC = () => {
         {/* Bot Name and Role Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Bot Name <span className="text-blue-600">*</span>
+            <label className="block text-xs font-semibold text-zinc-800 mb-1.5">
+              Bot Name <span className="text-zinc-900">*</span>
             </label>
             <Input
               placeholder="e.g. Telecom Billing Audit Bot"
@@ -139,7 +139,7 @@ export const CreateBotModal: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-800 mb-1.5">
               Role / Specialty
             </label>
             <Input
@@ -153,10 +153,10 @@ export const CreateBotModal: React.FC = () => {
         {/* System Instructions */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-              System Instructions & Persona <span className="text-blue-600">*</span>
+            <label className="block text-xs font-semibold text-zinc-800">
+              System Instructions & Persona <span className="text-zinc-900">*</span>
             </label>
-            <span className="text-[11px] text-slate-400">Guides how the bot behaves and responds</span>
+            <span className="text-[11px] text-zinc-400">Guides how the bot behaves and responds</span>
           </div>
           <Textarea
             rows={4}
@@ -174,20 +174,20 @@ export const CreateBotModal: React.FC = () => {
         {/* Knowledge Base File Upload */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <label className="block text-xs font-semibold text-zinc-800">
               Knowledge Base Documents
             </label>
-            <span className="text-[11px] text-slate-400">PDF, TXT, CSV, JSON, DOCX up to 25MB</span>
+            <span className="text-[11px] text-zinc-400">PDF, TXT, CSV, JSON, DOCX up to 25MB</span>
           </div>
 
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors cursor-pointer ${
+            className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors cursor-pointer ${
               isDragging
-                ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20'
-                : 'border-slate-200 hover:border-blue-400 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-900/50'
+                ? 'border-zinc-900 bg-zinc-100'
+                : 'border-zinc-200 hover:border-zinc-400 bg-zinc-50/60'
             }`}
           >
             <input
@@ -197,16 +197,16 @@ export const CreateBotModal: React.FC = () => {
               onChange={(e) => handleFileUpload(e.target.files)}
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
             />
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400 mb-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-zinc-900 mb-2 border border-zinc-200">
               <UploadCloud className="h-5 w-5" />
             </div>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-              <span className="text-blue-600 dark:text-blue-400 underline font-semibold">
+            <p className="text-xs sm:text-sm font-medium text-zinc-800">
+              <span className="text-zinc-950 underline font-semibold">
                 Click to browse
               </span>{' '}
               or drag & drop files here
             </p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-[11px] text-zinc-400 mt-1">
               Uploaded files will be indexed as training context for this custom bot
             </p>
           </div>
@@ -217,21 +217,21 @@ export const CreateBotModal: React.FC = () => {
               {files.map((file) => (
                 <div
                   key={file.id}
-                  className="flex items-center justify-between px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg bg-white border border-zinc-200 text-xs"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <File className="h-4 w-4 text-blue-600 shrink-0" />
-                    <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
+                    <File className="h-4 w-4 text-zinc-800 shrink-0" />
+                    <span className="font-medium text-zinc-800 truncate">
                       {file.name}
                     </span>
-                    <span className="text-slate-400 shrink-0">
+                    <span className="text-zinc-400 shrink-0">
                       ({(file.size / 1024).toFixed(1)} KB)
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRemoveFile(file.id)}
-                    className="p-1 text-slate-400 hover:text-red-500 rounded-md transition-colors"
+                    className="p-1 text-zinc-400 hover:text-red-600 rounded-md transition-colors"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -242,11 +242,11 @@ export const CreateBotModal: React.FC = () => {
         </div>
 
         {/* Modal Footer */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
-          <Button type="button" variant="outline" size="md" onClick={handleClose}>
+        <div className="pt-3 border-t border-zinc-100 flex items-center justify-end gap-2.5">
+          <Button type="button" variant="outline" size="sm" onClick={handleClose}>
             Cancel
           </Button>
-          <Button type="submit" variant="primary" size="md" className="gap-2">
+          <Button type="submit" variant="primary" size="sm" className="gap-2 font-semibold">
             <Bot className="h-4 w-4" />
             <span>Create & Start Conversation</span>
           </Button>

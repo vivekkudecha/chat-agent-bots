@@ -104,7 +104,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   }
 
   return (
-    <div className="p-4 sm:p-6 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 shrink-0">
+    <div className="p-3 sm:p-5 bg-white/80 border-t border-zinc-200 shrink-0 backdrop-blur-xs">
       <div className="max-w-3xl mx-auto">
         {/* Attached Files Preview Chips */}
         {attachedFiles.length > 0 ? (
@@ -112,14 +112,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             {attachedFiles.map((file) => (
               <div
                 key={file.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-xs font-medium text-blue-700 dark:text-blue-300"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 border border-zinc-200 text-xs font-medium text-zinc-800"
               >
-                <FileText className="h-3.5 w-3.5 text-blue-600" />
+                <FileText className="h-3.5 w-3.5 text-zinc-900" />
                 <span className="truncate max-w-[160px]">{file.name}</span>
                 <button
                   type="button"
                   onClick={() => handleRemoveFile(file.id)}
-                  className="p-0.5 hover:bg-blue-200/50 rounded-full transition-colors cursor-pointer"
+                  className="p-0.5 hover:bg-zinc-200 rounded-full transition-colors cursor-pointer"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -128,8 +128,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </div>
         ) : null}
 
-        {/* Tailgrids-inspired Floating Input Container */}
-        <div className="relative flex items-end rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all p-2">
+        {/* Floating Input Container */}
+        <div className="relative flex items-end rounded-xl border border-zinc-200 bg-white shadow-2xs focus-within:border-zinc-950 focus-within:ring-1 focus-within:ring-zinc-950 transition-all p-2">
           {/* File Attachment Action Button */}
           <input
             type="file"
@@ -141,10 +141,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-xl transition-colors cursor-pointer shrink-0 mb-0.5"
+            className="p-2 text-zinc-400 hover:text-zinc-950 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer shrink-0 mb-0.5"
             title="Attach documents or data files"
           >
-            <Paperclip className="h-5 w-5" />
+            <Paperclip className="h-4 w-4" />
           </button>
 
           {/* Text Area */}
@@ -156,7 +156,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onKeyDown={handleKeyDown}
             disabled={disabled}
             placeholder={`Message ${bot?.name || 'AI Assistant'}...`}
-            className="flex-1 max-h-44 min-h-[40px] resize-none bg-transparent px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none leading-relaxed"
+            className="flex-1 max-h-44 min-h-[38px] resize-none bg-transparent px-3 py-1.5 text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none leading-relaxed"
           />
 
           {/* Send Button */}
@@ -164,14 +164,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             type="button"
             onClick={handleSendMessage}
             disabled={disabled || (!text.trim() && attachedFiles.length === 0)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0 mb-0.5 active:scale-95"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-zinc-50 shadow-2xs hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0 mb-0.5 active:scale-95"
           >
-            <ArrowUp className="h-5 w-5 stroke-[2.5]" />
+            <ArrowUp className="h-4 w-4 stroke-[2.5]" />
           </button>
         </div>
 
-        <p className="mt-2 text-center text-[11px] text-slate-400 dark:text-slate-500">
-          Press <kbd className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded">Enter</kbd> to send, <kbd className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded">Shift + Enter</kbd> for new line
+        <p className="mt-2 text-center text-[10px] text-zinc-400">
+          Press <kbd className="font-mono bg-zinc-100 border border-zinc-200 px-1 rounded text-zinc-600">Enter</kbd> to send, <kbd className="font-mono bg-zinc-100 border border-zinc-200 px-1 rounded text-zinc-600">Shift + Enter</kbd> for new line
         </p>
       </div>
     </div>

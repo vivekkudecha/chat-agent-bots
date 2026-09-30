@@ -14,22 +14,22 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary:
-        'bg-blue-600 text-white hover:bg-blue-700 shadow-sm focus-visible:ring-blue-600 border border-transparent',
+        'bg-zinc-900 text-zinc-50 hover:bg-zinc-800 shadow-sm focus-visible:ring-zinc-950 border border-zinc-900/10',
       secondary:
-        'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/60 focus-visible:ring-blue-500',
+        'bg-zinc-100 text-zinc-900 hover:bg-zinc-200/80 border border-zinc-200/80 focus-visible:ring-zinc-950',
       outline:
-        'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-blue-500',
+        'border border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:ring-zinc-950',
       ghost:
-        'text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-blue-500',
+        'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:ring-zinc-950',
       destructive:
         'bg-red-600 text-white hover:bg-red-700 shadow-sm focus-visible:ring-red-600',
     }
 
     const sizeStyles = {
-      sm: 'h-8 px-3 text-xs rounded-lg gap-1.5',
-      md: 'h-10 px-4 text-sm rounded-xl gap-2',
-      lg: 'h-12 px-6 text-base rounded-xl gap-2.5',
-      icon: 'h-9 w-9 rounded-xl p-0',
+      sm: 'h-8 px-3 text-xs rounded-md gap-1.5',
+      md: 'h-9 px-4 text-xs font-semibold rounded-md gap-2',
+      lg: 'h-11 px-5 text-sm font-semibold rounded-md gap-2.5',
+      icon: 'h-9 w-9 rounded-md p-0',
     }
 
     return (

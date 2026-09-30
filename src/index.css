@@ -2,96 +2,70 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    /* 21st.dev Modern Minimal Theme Tokens (Light Mode) */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 240 10% 3.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 240 10% 3.9%;
 
-    /* Royal Blue Primary System */
-    --primary: 221 83% 53%; /* #2563EB */
-    --primary-foreground: 210 40% 98%;
-    --primary-hover: 224 76% 48%; /* #1D4ED8 */
-    --primary-light: 214 100% 97%; /* #EFF6FF */
-    --primary-border: 217 91% 60%;
+    /* Pitch Obsidian / Zinc-900 Primary Accent System */
+    --primary: 240 5.9% 10%; /* #18181b */
+    --primary-foreground: 0 0% 98%; /* #fafafa */
+    --primary-hover: 240 5.9% 18%; /* #27272a */
+    --primary-light: 240 4.8% 95.9%; /* #f4f4f5 */
+    --primary-border: 240 5.9% 10%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 214 100% 97%;
-    --accent-foreground: 221 83% 53%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     --sidebar-bg: 0 0% 100%;
-    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-border: 240 5.9% 90%;
   }
 
-  /* Royal Navy theme preset */
-  [data-theme="navy"] {
-    --primary: 224 64% 33%; /* #1E3A8A */
-    --primary-foreground: 210 40% 98%;
-    --primary-hover: 226 71% 40%;
-    --primary-light: 217 91% 95%;
-    --ring: 224 64% 33%;
-  }
-
-  /* Cobalt / Indigo theme preset */
-  [data-theme="cobalt"] {
-    --primary: 239 84% 67%; /* #6366F1 */
-    --primary-foreground: 210 40% 98%;
-    --primary-hover: 243 75% 59%;
-    --primary-light: 238 100% 97%;
-    --ring: 239 84% 67%;
-  }
-
-  /* Dark mode */
+  /* Force light mode baseline - no dark mode overrides */
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
-
-    --card: 222 47% 7%;
-    --card-foreground: 213 31% 91%;
-
-    --popover: 222 47% 7%;
-    --popover-foreground: 213 31% 91%;
-
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-    --primary-hover: 221 83% 53%;
-    --primary-light: 224 64% 15%;
-
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 224 76% 48%;
-
-    --sidebar-bg: 222 47% 6%;
-    --sidebar-border: 217 33% 15%;
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --primary-hover: 240 5.9% 18%;
+    --primary-light: 240 4.8% 95.9%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --sidebar-bg: 0 0% 100%;
+    --sidebar-border: 240 5.9% 90%;
   }
 }
 

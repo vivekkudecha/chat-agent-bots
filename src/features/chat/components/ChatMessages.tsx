@@ -57,30 +57,30 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
             status="online"
             className="mx-auto mb-4"
           />
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+          <h2 className="text-lg font-bold text-zinc-950 tracking-tight">
             {bot?.name || 'AI Assistant'}
           </h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs sm:text-sm text-zinc-500">
             {bot?.description || 'Ask questions, review documents, and explore solutions.'}
           </p>
 
           {/* Starter Prompts */}
           {bot?.suggestedPrompts && bot.suggestedPrompts.length > 0 ? (
             <div className="mt-8">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-blue-500" />
+              <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-3 flex items-center justify-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-zinc-700" />
                 <span>Suggested conversation starters</span>
               </p>
-              <div className="grid grid-cols-1 gap-2.5">
+              <div className="grid grid-cols-1 gap-2">
                 {bot.suggestedPrompts.map((prompt, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleSelectStarter(prompt)}
-                    className="p-3.5 text-left text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-blue-400 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 shadow-sm transition-all cursor-pointer flex items-center justify-between group"
+                    className="p-3 text-left text-xs sm:text-sm font-medium text-zinc-800 bg-white border border-zinc-200 rounded-xl hover:border-zinc-400 hover:bg-zinc-50/80 shadow-2xs transition-all cursor-pointer flex items-center justify-between group"
                   >
                     <span>"{prompt}"</span>
-                    <span className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-zinc-900 opacity-0 group-hover:opacity-100 transition-opacity font-bold">
                       →
                     </span>
                   </button>
@@ -115,10 +115,10 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
             {/* Bubble Container */}
             <div className="flex flex-col space-y-1.5 max-w-[85%] sm:max-w-[78%]">
               <div
-                className={`relative px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                className={`relative px-4 py-3 rounded-xl text-xs sm:text-sm leading-relaxed ${
                   isUser
-                    ? 'bg-blue-600 text-white rounded-tr-none shadow-sm'
-                    : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border border-slate-200/90 dark:border-slate-800 rounded-tl-none shadow-sm'
+                    ? 'bg-zinc-900 text-zinc-50 rounded-tr-xs shadow-2xs border border-zinc-950'
+                    : 'bg-white text-zinc-900 border border-zinc-200 rounded-tl-xs shadow-2xs'
                 }`}
               >
                 {/* File attachments badge inside message */}
@@ -127,10 +127,10 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                     {msg.files.map((file) => (
                       <div
                         key={file.id}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium ${
                           isUser
-                            ? 'bg-blue-700/80 text-blue-50 border border-blue-500/50'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                            ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
+                            : 'bg-zinc-100 text-zinc-800 border border-zinc-200'
                         }`}
                       >
                         <FileText className="h-3 w-3" />
@@ -145,17 +145,17 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
 
                 {/* Copy button for assistant */}
                 {!isUser ? (
-                  <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                  <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-400">
                     <span>{msg.timestamp}</span>
                     <button
                       type="button"
                       onClick={() => handleCopy(msg.id, msg.text)}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-zinc-100 hover:text-zinc-700 transition-colors cursor-pointer"
                     >
                       {copiedId === msg.id ? (
                         <>
-                          <Check className="h-3 w-3 text-emerald-500" />
-                          <span className="text-emerald-600 dark:text-emerald-400">Copied</span>
+                          <Check className="h-3 w-3 text-emerald-600" />
+                          <span className="text-emerald-700 font-medium">Copied</span>
                         </>
                       ) : (
                         <>
@@ -166,7 +166,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                     </button>
                   </div>
                 ) : (
-                  <div className="text-[10px] text-blue-100/80 text-right mt-1">
+                  <div className="text-[10px] text-zinc-400 text-right mt-1">
                     {msg.timestamp}
                   </div>
                 )}
@@ -185,13 +185,13 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
             status="online"
             className="mt-0.5"
           />
-          <div className="px-4 py-3 rounded-2xl rounded-tl-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2">
+          <div className="px-4 py-3 rounded-xl rounded-tl-xs bg-white border border-zinc-200 shadow-2xs flex items-center gap-2">
             <div className="flex items-center space-x-1.5">
-              <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce [animation-delay:-0.3s]"></span>
-              <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce [animation-delay:-0.15s]"></span>
-              <span className="h-2 w-2 rounded-full bg-blue-600 animate-bounce"></span>
+              <span className="h-2 w-2 rounded-full bg-zinc-900 animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="h-2 w-2 rounded-full bg-zinc-900 animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="h-2 w-2 rounded-full bg-zinc-900 animate-bounce"></span>
             </div>
-            <span className="text-xs text-slate-400 font-medium">Analyzing response...</span>
+            <span className="text-xs text-zinc-400 font-medium">Analyzing response...</span>
           </div>
         </div>
       ) : null}
