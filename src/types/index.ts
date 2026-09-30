@@ -10,6 +10,7 @@ export interface Bot {
   id: string
   name: string
   role: string
+  department?: string
   description: string
   systemInstruction: string
   avatar: string

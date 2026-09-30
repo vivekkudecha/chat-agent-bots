@@ -13,6 +13,7 @@ import {
   setActiveConversation,
   deleteConversation,
   togglePinConversation,
+  startNewChatWithBot,
 } from '@/features/chat/chatSlice'
 import {
   setActiveTab,
@@ -92,7 +93,14 @@ export const Sidebar: React.FC = () => {
         <div className="flex h-14 items-center justify-between px-4 border-b border-zinc-200 shrink-0">
           <div
             className="flex items-center gap-2.5 cursor-pointer"
-            onClick={() => dispatch(setActiveTab('home'))}
+            onClick={() => {
+              dispatch(
+                startNewChatWithBot({
+                  botId: organizationBots[0]?.id || 'bot-org-1',
+                  botName: organizationBots[0]?.name || 'Customer Success Copilot',
+                })
+              )
+            }}
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white shadow-xs">
               <Cpu className="h-4 w-4" />
@@ -116,18 +124,23 @@ export const Sidebar: React.FC = () => {
 
         {/* Primary Action Buttons */}
         <div className="p-3 space-y-1.5 border-b border-zinc-100">
-          {/* Explore Organization Bots Tab Trigger */}
+          {/* New Chat Button */}
           <Button
-            variant={activeTab === 'home' ? 'primary' : 'outline'}
+            variant="primary"
             size="sm"
             onClick={() => {
-              dispatch(setActiveTab('home'))
+              dispatch(
+                startNewChatWithBot({
+                  botId: organizationBots[0]?.id || 'bot-org-1',
+                  botName: organizationBots[0]?.name || 'Customer Success Copilot',
+                })
+              )
               dispatch(setMobileSidebarOpen(false))
             }}
             className="w-full justify-start gap-2 font-medium"
           >
-            <Compass className="h-3.5 w-3.5" />
-            <span>Explore AI Agents</span>
+            <Plus className="h-3.5 w-3.5" />
+            <span>New Chat</span>
           </Button>
 
           {/* Create Custom Bot Button */}
@@ -137,7 +150,7 @@ export const Sidebar: React.FC = () => {
             onClick={() => dispatch(openCreateBotModal())}
             className="w-full justify-start gap-2 font-medium"
           >
-            <Plus className="h-3.5 w-3.5 text-zinc-900" />
+            <Compass className="h-3.5 w-3.5 text-zinc-900" />
             <span>Create Custom Bot</span>
           </Button>
         </div>

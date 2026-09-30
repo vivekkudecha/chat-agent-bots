@@ -9,6 +9,14 @@ interface ChatState {
 
 const initialConversations: Conversation[] = [
   {
+    id: 'conv-new',
+    botId: 'bot-org-1',
+    title: 'New Chat Session',
+    updatedAt: new Date().toISOString(),
+    isPinned: false,
+    messages: [],
+  },
+  {
     id: 'conv-1',
     botId: 'bot-org-2',
     title: 'Customer Portal Auth Architecture Review',
@@ -75,7 +83,7 @@ const initialConversations: Conversation[] = [
 
 const initialState: ChatState = {
   conversations: initialConversations,
-  activeConversationId: 'conv-1',
+  activeConversationId: 'conv-new',
   isTyping: false,
 }
 
@@ -114,6 +122,18 @@ export const chatSlice = createSlice({
       state.activeConversationId = newId
       if (action.payload.initialMessage) {
         state.isTyping = true
+      }
+    },
+    switchBotForConversation: (
+      state,
+      action: PayloadAction<{ conversationId: string; botId: string; botName?: string }>
+    ) => {
+      const conv = state.conversations.find((c) => c.id === action.payload.conversationId)
+      if (conv) {
+        conv.botId = action.payload.botId
+        if (conv.messages.length === 0 && action.payload.botName) {
+          conv.title = `Chat with ${action.payload.botName}`
+        }
       }
     },
     addUserMessage: (
@@ -174,6 +194,7 @@ export const chatSlice = createSlice({
 export const {
   setActiveConversation,
   startNewChatWithBot,
+  switchBotForConversation,
   addUserMessage,
   addAssistantMessage,
   setIsTyping,

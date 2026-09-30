@@ -50,17 +50,24 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 space-y-6">
       {/* If conversation is empty, display welcome & starter prompts */}
       {messages.length === 0 ? (
-        <div className="max-w-xl mx-auto py-12 text-center">
+        <div className="max-w-xl mx-auto py-8 sm:py-12 text-center">
           <Avatar
             fallback={bot?.avatar || 'AI'}
             size="xl"
             status="online"
-            className="mx-auto mb-4"
+            className="mx-auto mb-3.5"
           />
-          <h2 className="text-lg font-bold text-zinc-950 tracking-tight">
+          <h2 className="text-xl font-bold text-zinc-950 tracking-tight">
             {bot?.name || 'AI Assistant'}
           </h2>
-          <p className="mt-1 text-xs sm:text-sm text-zinc-500">
+          <div className="mt-1 flex items-center justify-center gap-2">
+            <span className="text-xs font-semibold text-zinc-600 bg-zinc-100 border border-zinc-200/80 px-2 py-0.5 rounded-full">
+              {bot?.department || bot?.category || 'Enterprise'}
+            </span>
+            <span className="text-zinc-300">•</span>
+            <span className="text-xs text-zinc-500">{bot?.role}</span>
+          </div>
+          <p className="mt-2 text-xs sm:text-sm text-zinc-600 max-w-md mx-auto leading-relaxed">
             {bot?.description || 'Ask questions, review documents, and explore solutions.'}
           </p>
 

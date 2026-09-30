@@ -1,10 +1,41 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
+import {
+  Headphones,
+  Code2,
+  BarChart3,
+  Scale,
+  Layers,
+  Bot as BotIcon,
+  Cpu,
+  Sparkles,
+  Users,
+  type LucideIcon,
+} from 'lucide-react'
+
+export const BOT_ICON_MAP: Record<string, LucideIcon> = {
+  Headphones,
+  Code2,
+  BarChart3,
+  Scale,
+  Layers,
+  Bot: BotIcon,
+  Cpu,
+  Sparkles,
+  Users,
+  CS: Headphones,
+  AR: Code2,
+  DA: BarChart3,
+  LC: Scale,
+  PM: Layers,
+  TT: Cpu,
+}
 
 export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string
   alt?: string
   fallback?: string
+  icon?: LucideIcon
   size?: 'sm' | 'md' | 'lg' | 'xl'
   status?: 'online' | 'offline' | 'busy'
 }
@@ -13,6 +44,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   src,
   alt = 'Avatar',
   fallback,
+  icon: IconProp,
   size = 'md',
   status,
   className,
@@ -25,6 +57,13 @@ export const Avatar: React.FC<AvatarProps> = ({
     md: 'h-10 w-10 text-sm',
     lg: 'h-12 w-12 text-base',
     xl: 'h-14 w-14 text-lg',
+  }
+
+  const iconSizes = {
+    sm: 15,
+    md: 18,
+    lg: 22,
+    xl: 26,
   }
 
   const statusSize = {
@@ -40,32 +79,39 @@ export const Avatar: React.FC<AvatarProps> = ({
     busy: 'bg-amber-500',
   }
 
-  const getInitials = (text?: string) => {
-    if (!text) return 'AI'
-    const parts = text.trim().split(' ')
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase()
-    }
-    return text.slice(0, 2).toUpperCase()
-  }
+  // Determine if fallback or icon is a Lucide icon
+  const ResolvedIcon = IconProp || (fallback && BOT_ICON_MAP[fallback]) || (alt && BOT_ICON_MAP[alt])
+
+  const hasValidImageSrc =
+    src &&
+    !imageError &&
+    (src.startsWith('http://') ||
+      src.startsWith('https://') ||
+      src.startsWith('data:') ||
+      src.startsWith('blob:') ||
+      src.startsWith('/'))
 
   return (
     <div className={cn('relative inline-block select-none shrink-0', className)} {...props}>
       <div
         className={cn(
-          'relative flex items-center justify-center rounded-xl overflow-hidden font-semibold border border-zinc-200 bg-gradient-to-br from-zinc-800 to-zinc-950 text-zinc-50 shadow-xs',
+          'relative flex items-center justify-center rounded-xl overflow-hidden font-semibold border border-zinc-200/80 bg-zinc-100 text-zinc-800 shadow-2xs transition-colors',
           sizeClasses[size]
         )}
       >
-        {src && !imageError ? (
+        {hasValidImageSrc ? (
           <img
             src={src}
             alt={alt}
             onError={() => setImageError(true)}
             className="h-full w-full object-cover"
           />
+        ) : ResolvedIcon ? (
+          <ResolvedIcon size={iconSizes[size]} className="stroke-[1.9] text-zinc-900" />
+        ) : fallback ? (
+          <span>{fallback}</span>
         ) : (
-          <span>{fallback || getInitials(alt)}</span>
+          <BotIcon size={iconSizes[size]} className="stroke-[1.9] text-zinc-900" />
         )}
       </div>
       {status ? (
@@ -80,3 +126,4 @@ export const Avatar: React.FC<AvatarProps> = ({
     </div>
   )
 }
+

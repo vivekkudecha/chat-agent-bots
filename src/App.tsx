@@ -1,15 +1,17 @@
 import { useMemo } from 'react'
 import { Sidebar } from '@/features/sidebar/components/Sidebar'
 import { AppNavbar } from '@/components/common/AppNavbar'
-import { BotListGrid } from '@/features/bots/components/BotListGrid'
 import { ChatHeader } from '@/features/chat/components/ChatHeader'
 import { ChatMessages } from '@/features/chat/components/ChatMessages'
 import { ChatInput } from '@/features/chat/components/ChatInput'
+import { OrgBotBar } from '@/features/chat/components/OrgBotBar'
 import { CreateBotModal } from '@/features/bots/components/CreateBotModal'
-import { useAppSelector } from '@/app/hooks'
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { startNewChatWithBot, switchBotForConversation } from '@/features/chat/chatSlice'
+import type { Bot } from '@/types'
 
 export function App() {
-  const { activeTab } = useAppSelector((state) => state.ui)
+  const dispatch = useAppDispatch()
   const { conversations, activeConversationId, isTyping } = useAppSelector(
     (state) => state.chat
   )
@@ -30,39 +32,65 @@ export function App() {
     return allBots.find((b) => b.id === activeConversation.botId) || organizationBots[0]
   }, [activeConversation, allBots, organizationBots])
 
+  const hasMessages = Boolean(activeConversation && activeConversation.messages.length > 0)
+
+  const handleSelectBot = (bot: Bot) => {
+    if (activeConversation && activeConversation.messages.length === 0) {
+      dispatch(
+        switchBotForConversation({
+          conversationId: activeConversation.id,
+          botId: bot.id,
+          botName: bot.name,
+        })
+      )
+    } else {
+      dispatch(
+        startNewChatWithBot({
+          botId: bot.id,
+          botName: bot.name,
+        })
+      )
+    }
+  }
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-zinc-50/60 font-sans antialiased text-zinc-900">
       {/* Left Sidebar */}
       <Sidebar />
 
-      {/* Main Content Area */}
+      {/* Main Content Area: Merged Home & Chat in ChatGPT style */}
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <AppNavbar />
 
-        <main className="flex-1 flex flex-col overflow-hidden relative">
-          {activeTab === 'home' ? (
-            /* Screen 4: Main screen showing organization-defined AI bots */
-            <BotListGrid />
-          ) : (
-            /* Screen 1: AI Chat Screen */
-            <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-50/40">
-              <ChatHeader bot={activeBot} conversation={activeConversation} />
-              <ChatMessages
-                conversation={activeConversation}
-                bot={activeBot}
-                isTyping={isTyping}
-              />
-              <ChatInput
-                conversation={activeConversation}
-                bot={activeBot}
-                disabled={isTyping}
-              />
-            </div>
-          )}
+        <main className="flex-1 flex flex-col overflow-hidden relative bg-zinc-50/40">
+          {/* Active Bot Identity & Quick Controls */}
+          <ChatHeader bot={activeBot} conversation={activeConversation} />
+
+          {/* Conversation messages stream or ChatGPT welcome state */}
+          <ChatMessages
+            conversation={activeConversation}
+            bot={activeBot}
+            isTyping={isTyping}
+          />
+
+          {/* Organization Chat-Bot Options: Placed directly above the chat box */}
+          <OrgBotBar
+            bots={organizationBots}
+            activeBotId={activeBot?.id}
+            onSelectBot={handleSelectBot}
+            isCompact={hasMessages}
+          />
+
+          {/* Chat Input Box */}
+          <ChatInput
+            conversation={activeConversation}
+            bot={activeBot}
+            disabled={isTyping}
+          />
         </main>
       </div>
 
-      {/* Screen 3: Create Custom AI Bot with instructions & file upload modal */}
+      {/* Create Custom AI Bot Modal */}
       <CreateBotModal />
     </div>
   )

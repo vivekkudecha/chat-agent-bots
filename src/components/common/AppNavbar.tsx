@@ -1,16 +1,15 @@
 import React from 'react'
-import { Menu, Compass, MessageSquare, Plus } from 'lucide-react'
+import { Menu, MessageSquare, Plus } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import {
   toggleMobileSidebar,
-  setActiveTab,
   openCreateBotModal,
 } from '@/features/ui/uiSlice'
+import { startNewChatWithBot } from '@/features/chat/chatSlice'
 import { Button } from '@/components/ui/button'
 
 export const AppNavbar: React.FC = () => {
   const dispatch = useAppDispatch()
-  const { activeTab } = useAppSelector((state) => state.ui)
   const { activeConversationId, conversations } = useAppSelector((state) => state.chat)
   const { organizationBots, customBots } = useAppSelector((state) => state.bots)
 
@@ -32,56 +31,34 @@ export const AppNavbar: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-2">
-          {activeTab === 'home' ? (
-            <span className="font-semibold text-xs sm:text-sm text-zinc-900 tracking-tight">
-              Organization AI Agents
-            </span>
-          ) : (
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <button
-                type="button"
-                onClick={() => dispatch(setActiveTab('home'))}
-                className="text-zinc-500 hover:text-zinc-900 font-medium cursor-pointer"
-              >
-                Bots
-              </button>
-              <span className="text-zinc-300">/</span>
-              <span className="font-semibold text-zinc-900 tracking-tight">
-                {activeBot?.name || 'Active Chat'}
-              </span>
-            </div>
-          )}
+          <span className="font-semibold text-xs sm:text-sm text-zinc-900 tracking-tight">
+            TataTel AI
+          </span>
+          <span className="text-zinc-300">/</span>
+          <span className="text-xs sm:text-sm font-medium text-zinc-600 truncate max-w-[200px]">
+            {activeBot?.name || 'Chat Session'}
+          </span>
         </div>
       </div>
 
-      {/* Right: Tab Navigation Switchers and Actions */}
+      {/* Right: Actions */}
       <div className="flex items-center gap-2">
-        <div className="hidden sm:flex items-center p-1 rounded-lg bg-zinc-100 border border-zinc-200">
-          <button
-            type="button"
-            onClick={() => dispatch(setActiveTab('home'))}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === 'home'
-                ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200/80'
-                : 'text-zinc-600 hover:text-zinc-900'
-            }`}
-          >
-            <Compass className="h-3.5 w-3.5" />
-            <span>Explore Bots</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatch(setActiveTab('chat'))}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === 'chat'
-                ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200/80'
-                : 'text-zinc-600 hover:text-zinc-900'
-            }`}
-          >
-            <MessageSquare className="h-3.5 w-3.5" />
-            <span>Chat Session</span>
-          </button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            dispatch(
+              startNewChatWithBot({
+                botId: organizationBots[0]?.id || 'bot-org-1',
+                botName: organizationBots[0]?.name || 'Customer Success Copilot',
+              })
+            )
+          }}
+          className="gap-1.5 text-xs font-semibold"
+        >
+          <MessageSquare className="h-3.5 w-3.5 text-zinc-700" />
+          <span>New Chat</span>
+        </Button>
 
         <Button
           variant="primary"

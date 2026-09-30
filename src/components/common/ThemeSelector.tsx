@@ -1,7 +1,7 @@
 import React from 'react'
-import { Sun, Moon, Palette } from 'lucide-react'
+import { Palette } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
-import { setThemePreset, toggleDarkMode } from '@/features/ui/uiSlice'
+import { setThemePreset } from '@/features/ui/uiSlice'
 import type { ThemePreset } from '@/types'
 
 export const ThemeSelector: React.FC = () => {

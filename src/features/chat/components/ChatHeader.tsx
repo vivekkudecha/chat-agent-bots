@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import { ArrowLeft, FileText, Info, PlusCircle } from 'lucide-react'
+import { FileText, Info, PlusCircle } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { useAppDispatch } from '@/app/hooks'
-import { setActiveTab } from '@/features/ui/uiSlice'
 import { startNewChatWithBot } from '@/features/chat/chatSlice'
 import type { Bot, Conversation } from '@/types'
 
@@ -31,17 +30,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ bot }) => {
   return (
     <>
       <div className="h-14 px-4 sm:px-6 bg-white border-b border-zinc-200 flex items-center justify-between shrink-0">
-        {/* Left: Back button & Bot identity */}
+        {/* Left: Bot identity */}
         <div className="flex items-center gap-3 min-w-0">
-          <button
-            type="button"
-            onClick={() => dispatch(setActiveTab('home'))}
-            className="p-1.5 text-zinc-500 hover:text-zinc-950 rounded-md hover:bg-zinc-100 transition-colors cursor-pointer shrink-0"
-            title="Back to All Bots"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-
           <div className="flex items-center gap-2.5 min-w-0">
             <Avatar fallback={bot?.avatar || 'AI'} size="md" status="online" />
             <div className="min-w-0">
@@ -49,8 +39,11 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ bot }) => {
                 <h2 className="font-semibold text-xs sm:text-sm text-zinc-900 truncate tracking-tight">
                   {botName}
                 </h2>
+                <span className="hidden sm:inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-200/80">
+                  {bot?.department || bot?.category || 'Agent'}
+                </span>
                 {bot?.badge ? (
-                  <Badge variant="royal" className="hidden sm:inline-flex text-[10px]">
+                  <Badge variant="royal" className="hidden md:inline-flex text-[10px]">
                     {bot.badge}
                   </Badge>
                 ) : null}

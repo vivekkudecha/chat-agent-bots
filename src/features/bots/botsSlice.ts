@@ -6,11 +6,12 @@ const initialOrgBots: Bot[] = [
     id: 'bot-org-1',
     name: 'Customer Success Copilot',
     role: 'Enterprise SLA & Support Specialist',
+    department: 'Customer Support',
     description:
       'Resolves complex customer inquiries, audits SLA breach tickets, and drafts empathetic executive resolution briefs.',
     systemInstruction:
       'You are a high-level Customer Success and Support Specialist for enterprise clients. Always provide polite, professional, and actionable resolutions.',
-    avatar: 'CS',
+    avatar: 'Headphones',
     category: 'Enterprise',
     badge: 'Recommended',
     knowledgeFiles: [
@@ -29,11 +30,12 @@ const initialOrgBots: Bot[] = [
     id: 'bot-org-2',
     name: 'Cloud Architecture & Code Reviewer',
     role: 'Full-Stack Systems & Security Auditor',
+    department: 'Engineering',
     description:
       'Analyzes microservice topologies, reviews pull requests, optimizes cloud latency, and enforces SOLID architecture.',
     systemInstruction:
       'You are a Principal Cloud Systems Architect. Provide idiomatic, clean, modular, and performant code recommendations.',
-    avatar: 'AR',
+    avatar: 'Code2',
     category: 'Engineering',
     badge: 'Popular',
     knowledgeFiles: [
@@ -51,11 +53,12 @@ const initialOrgBots: Bot[] = [
     id: 'bot-org-3',
     name: 'Data Intelligence & Analytics Guru',
     role: 'BigQuery, SQL & BI Analytics Lead',
+    department: 'Data & Analytics',
     description:
       'Transforms raw telemetry into executive KPI dashboards, constructs performant BigQuery models, and detects trends.',
     systemInstruction:
       'You are an expert Data Engineer and Analytics Specialist. Focus on query optimization, partition pruning, and executive data storytelling.',
-    avatar: 'DA',
+    avatar: 'BarChart3',
     category: 'Operations',
     badge: 'Enterprise',
     knowledgeFiles: [
@@ -73,11 +76,12 @@ const initialOrgBots: Bot[] = [
     id: 'bot-org-4',
     name: 'Legal & Compliance Navigator',
     role: 'Contract Review & Regulatory Counsel',
+    department: 'Legal & Compliance',
     description:
       'Screens Master Service Agreements, identifies non-standard indemnification clauses, and verifies GDPR/SOC2 adherence.',
     systemInstruction:
       'You are an Enterprise Legal and Compliance Specialist. Highlight potential contractual risks with precise clause references.',
-    avatar: 'LC',
+    avatar: 'Scale',
     category: 'Finance & Legal',
     badge: 'Verified',
     knowledgeFiles: [
@@ -95,11 +99,12 @@ const initialOrgBots: Bot[] = [
     id: 'bot-org-5',
     name: 'Product Strategy & PRD Copilot',
     role: 'Principal Product Manager',
+    department: 'Product Management',
     description:
       'Drafts crisp Product Requirement Documents (PRDs), writes acceptance criteria, and constructs roadmap prioritization matrices.',
     systemInstruction:
       'You are a seasoned Principal Product Manager. Structure requirements with user problem statements, non-functional requirements, and success metrics.',
-    avatar: 'PM',
+    avatar: 'Layers',
     category: 'Enterprise',
     suggestedPrompts: [
       'Draft a PRD for an AI chat conversational bot builder',
@@ -126,9 +131,10 @@ const initialState: BotsState = {
       id: 'bot-custom-1',
       name: 'Internal TataTel FAQ Helper',
       role: 'Company Policies & IT Helpdesk',
+      department: 'IT & HR',
       description: 'Custom trained bot on company IT handbook and internal knowledge base.',
       systemInstruction: 'Answer queries accurately based only on the uploaded IT handbook.',
-      avatar: 'TT',
+      avatar: 'Cpu',
       category: 'Custom',
       badge: 'Custom Bot',
       knowledgeFiles: [
