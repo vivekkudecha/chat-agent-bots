@@ -4,6 +4,7 @@ import { Avatar } from '@/components/ui/avatar'
 import type { Bot, Conversation } from '@/types'
 import { useAppDispatch } from '@/app/hooks'
 import { addUserMessage } from '@/features/chat/chatSlice'
+import { MarkdownContent } from './MarkdownContent'
 
 interface ChatMessagesProps {
   conversation?: Conversation
@@ -148,8 +149,8 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                   </div>
                 ) : null}
 
-                {/* Message Text with simple formatting */}
-                <div className="whitespace-pre-wrap">{msg.text}</div>
+                {/* Message Text rendered via Markdown Parser */}
+                <MarkdownContent content={msg.text} isUser={isUser} />
 
                 {/* Assistant Message Actions & Metadata Icons */}
                 {!isUser ? (
@@ -158,7 +159,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                       <span>{msg.timestamp}</span>
 
                       {/* Small Icon for Grounded Sources (if available) */}
-                      {msg.sources && msg.sources.length > 0 ? (
+                      {(msg.sources && msg.sources.length > 0) || (msg.usage?.source_count && msg.usage.source_count > 0) ? (
                         <button
                           type="button"
                           onClick={() =>
@@ -176,7 +177,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                           title="Click to view grounded sources"
                         >
                           <FileText className="h-3 w-3" />
-                          <span>Sources ({msg.sources.length})</span>
+                          <span>Sources ({msg.sources?.length || msg.usage?.source_count})</span>
                         </button>
                       ) : null}
 
@@ -201,7 +202,9 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                           <Sparkles className="h-3 w-3 text-amber-500" />
                           <span>
                             {typeof msg.usage.total_tokens === 'number'
-                              ? `${msg.usage.total_tokens} tokens`
+                              ? `${msg.usage.total_tokens.toLocaleString()} tokens`
+                              : typeof msg.usage.output_tokens === 'number'
+                              ? `${msg.usage.output_tokens.toLocaleString()} tokens`
                               : 'Usage'}
                           </span>
                         </button>
@@ -234,16 +237,18 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 )}
 
                 {/* Sources Details Panel: ONLY visible when user clicks the sources icon */}
+                {/* Sources Details Panel: ONLY visible when user clicks the sources icon */}
                 {!isUser &&
                   activeDetail?.msgId === msg.id &&
-                  activeDetail.type === 'sources' &&
-                  msg.sources &&
-                  msg.sources.length > 0 && (
+                  activeDetail.type === 'sources' && (
                     <div className="mt-3 p-3 rounded-lg bg-zinc-50 border border-zinc-200/90 text-xs animate-in fade-in slide-in-from-top-1">
                       <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-200">
                         <div className="flex items-center gap-1.5 font-bold text-zinc-900 text-[11px]">
                           <FileText className="h-3.5 w-3.5 text-zinc-700" />
-                          <span>Grounded Document Sources ({msg.sources.length})</span>
+                          <span>
+                            Grounded Document Sources (
+                            {msg.sources?.length || msg.usage?.source_count || 0})
+                          </span>
                         </div>
                         <button
                           type="button"
@@ -254,43 +259,51 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                         </button>
                       </div>
 
-                      <div className="space-y-2">
-                        {msg.sources.map((src, sIdx) => {
-                          const scorePercent =
-                            typeof src.score === 'number'
-                              ? `${Math.round(src.score * 100)}% Match`
-                              : null
+                      {msg.sources && msg.sources.length > 0 ? (
+                        <div className="space-y-2">
+                          {msg.sources.map((src, sIdx) => {
+                            const scorePercent =
+                              typeof src.score === 'number'
+                                ? `${Math.round(src.score * 100)}% Match`
+                                : null
 
-                          return (
-                            <div
-                              key={sIdx}
-                              className="p-2.5 rounded-md bg-white border border-zinc-200 flex items-start justify-between gap-3 shadow-2xs"
-                            >
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-semibold text-zinc-900 truncate">
-                                    {src.fileName}
-                                  </span>
-                                  {src.page ? (
-                                    <span className="text-[10px] text-zinc-500 bg-zinc-100 px-1.5 py-0.2 rounded font-medium shrink-0">
-                                      Page {src.page}
+                            return (
+                              <div
+                                key={sIdx}
+                                className="p-2.5 rounded-md bg-white border border-zinc-200 flex items-start justify-between gap-3 shadow-2xs"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-semibold text-zinc-900 truncate">
+                                      {src.fileName}
                                     </span>
-                                  ) : null}
+                                    {src.page ? (
+                                      <span className="text-[10px] text-zinc-500 bg-zinc-100 px-1.5 py-0.2 rounded font-medium shrink-0">
+                                        Page {src.page}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                  <p className="text-[10px] font-mono text-zinc-400 truncate mt-0.5">
+                                    ID: {src.documentId}
+                                  </p>
                                 </div>
-                                <p className="text-[10px] font-mono text-zinc-400 truncate mt-0.5">
-                                  ID: {src.documentId}
-                                </p>
-                              </div>
 
-                              {scorePercent ? (
-                                <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                                  {scorePercent}
-                                </span>
-                              ) : null}
-                            </div>
-                          )
-                        })}
-                      </div>
+                                {scorePercent ? (
+                                  <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                    {scorePercent}
+                                  </span>
+                                ) : null}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-zinc-500 text-xs py-1">
+                          {msg.usage?.source_count
+                            ? `${msg.usage.source_count} knowledge references were retrieved from your uploaded documents.`
+                            : 'Grounded against bot knowledge base documents.'}
+                        </p>
+                      )}
                     </div>
                   )}
 
@@ -320,25 +333,27 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                             Total Tokens
                           </span>
                           <span className="text-xs font-bold text-zinc-900 mt-0.5 block">
-                            {msg.usage.total_tokens ?? 'N/A'}
+                            {typeof msg.usage.total_tokens === 'number'
+                              ? msg.usage.total_tokens.toLocaleString()
+                              : 'N/A'}
                           </span>
                         </div>
 
                         <div className="p-2 rounded bg-white border border-zinc-200">
                           <span className="block text-[10px] text-zinc-400 font-medium">
-                            Prompt
+                            Prompt / Input
                           </span>
                           <span className="text-xs font-bold text-zinc-900 mt-0.5 block">
-                            {msg.usage.prompt_tokens ?? 'N/A'}
+                            {(msg.usage.prompt_tokens ?? msg.usage.input_tokens)?.toLocaleString() ?? 'N/A'}
                           </span>
                         </div>
 
                         <div className="p-2 rounded bg-white border border-zinc-200">
                           <span className="block text-[10px] text-zinc-400 font-medium">
-                            Completion
+                            Completion / Output
                           </span>
                           <span className="text-xs font-bold text-zinc-900 mt-0.5 block">
-                            {msg.usage.completion_tokens ?? 'N/A'}
+                            {(msg.usage.completion_tokens ?? msg.usage.output_tokens)?.toLocaleString() ?? 'N/A'}
                           </span>
                         </div>
 
@@ -347,14 +362,18 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                             Latency
                           </span>
                           <span className="text-xs font-bold text-zinc-900 mt-0.5 block">
-                            {msg.usage.latency_ms ? `${msg.usage.latency_ms}ms` : 'Fast'}
+                            {typeof msg.usage.latency_ms === 'number'
+                              ? msg.usage.latency_ms >= 1000
+                                ? `${(msg.usage.latency_ms / 1000).toFixed(2)}s`
+                                : `${msg.usage.latency_ms}ms`
+                              : 'Fast'}
                           </span>
                         </div>
                       </div>
 
                       {msg.usage.model && (
-                        <p className="mt-2 text-[10px] text-zinc-400 font-mono text-center">
-                          Model: {String(msg.usage.model)}
+                        <p className="mt-2 text-[10px] text-zinc-500 font-mono text-center">
+                          Model: <span className="font-semibold text-zinc-700">{String(msg.usage.model)}</span>
                         </p>
                       )}
                     </div>

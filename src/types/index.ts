@@ -40,14 +40,19 @@ export interface ChatSource {
   fileName: string
   page?: number
   score?: number
+  knowledgeBaseId?: string
 }
 
 export interface TokenUsage {
   prompt_tokens?: number
   completion_tokens?: number
+  input_tokens?: number
+  output_tokens?: number
   total_tokens?: number
   latency_ms?: number
   model?: string
+  source_count?: number
+  finish_reason?: string
   [key: string]: unknown
 }
 

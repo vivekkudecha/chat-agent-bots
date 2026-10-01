@@ -184,6 +184,11 @@ export interface BackendMessage {
   conversation_id: string
   role: 'user' | 'assistant'
   content: string
+  model_id?: string | null
+  input_tokens?: number | null
+  output_tokens?: number | null
+  latency_ms?: number | null
+  metadata?: Record<string, unknown>
   created_at: string
 }
 
@@ -246,6 +251,8 @@ export interface ChatApiResult {
   model?: string
   latency_ms?: number
   usage?: {
+    input_tokens?: number
+    output_tokens?: number
     prompt_tokens?: number
     completion_tokens?: number
     total_tokens?: number
@@ -258,6 +265,7 @@ export interface ChatApiResult {
     page?: number
     score?: number
   }>
+  warnings?: string[]
 }
 
 export const chatApi = {

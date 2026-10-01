@@ -7,6 +7,10 @@ import {
   saveActiveConversationId,
   removeSavedConversationId,
 } from '@/utils/routing'
+import {
+  parseApiChatResponse,
+  parseStoredBackendMessage,
+} from '@/utils/chatParser'
 
 interface ChatState {
   conversations: Conversation[]
@@ -96,15 +100,7 @@ export const fetchBotConversations = createAsyncThunk<
       title: item.title || (botName ? `Chat with ${botName}` : 'Conversation'),
       updatedAt: item.updated_at || item.created_at,
       messages: item.messages
-        ? item.messages.map((m) => ({
-            id: m.id,
-            sender: m.role,
-            text: m.content,
-            timestamp: new Date(m.created_at).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-          }))
+        ? item.messages.map((m) => parseStoredBackendMessage(m, item.id))
         : [],
     }))
 
@@ -159,15 +155,7 @@ export const fetchConversationDetails = createAsyncThunk<Conversation, string>(
       botId: res.bot_id,
       title: res.title || 'Conversation',
       updatedAt: res.updated_at || res.created_at,
-      messages: (res.messages || []).map((m) => ({
-        id: m.id,
-        sender: m.role,
-        text: m.content,
-        timestamp: new Date(m.created_at).toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      })),
+      messages: (res.messages || []).map((m) => parseStoredBackendMessage(m, res.id)),
     }
   }
 )
@@ -205,33 +193,7 @@ export const sendChatMessageThunk = createAsyncThunk<
     message,
   })
 
-  const assistantMessage: ChatMessage = {
-    id: res.message_id || `msg-${Date.now()}`,
-    sender: 'assistant',
-    text: res.content,
-    timestamp: new Date().toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-    sources: res.sources?.map((s) => ({
-      documentId: s.document_id,
-      fileName: s.file_name,
-      page: s.page,
-      score: s.score,
-    })),
-    usage: res.usage
-      ? {
-          ...res.usage,
-          latency_ms: res.latency_ms,
-          model: res.model,
-        }
-      : res.latency_ms || res.model
-      ? {
-          latency_ms: res.latency_ms,
-          model: res.model,
-        }
-      : undefined,
-  }
+  const assistantMessage = parseApiChatResponse(res, conversationId)
 
   return { assistantMessage, conversationId }
 })
