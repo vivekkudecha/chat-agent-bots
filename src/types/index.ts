@@ -9,6 +9,7 @@ export interface AttachedFile {
 export interface Bot {
   id: string
   name: string
+  slug?: string
   role: string
   department?: string
   description: string
@@ -41,6 +42,15 @@ export interface ChatSource {
   score?: number
 }
 
+export interface TokenUsage {
+  prompt_tokens?: number
+  completion_tokens?: number
+  total_tokens?: number
+  latency_ms?: number
+  model?: string
+  [key: string]: unknown
+}
+
 export interface ChatMessage {
   id: string
   sender: 'user' | 'assistant'
@@ -48,6 +58,7 @@ export interface ChatMessage {
   timestamp: string
   files?: AttachedFile[]
   sources?: ChatSource[]
+  usage?: TokenUsage
 }
 
 export interface Conversation {

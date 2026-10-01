@@ -28,6 +28,12 @@ import {
   setMobileSidebarOpen,
 } from '@/features/ui/uiSlice'
 import { logout } from '@/features/auth/authSlice'
+import {
+  navigateToBot,
+  navigateToHome,
+  updateActiveConversationUrl,
+  getSavedConversationId,
+} from '@/utils/routing'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import type { Bot } from '@/types'
@@ -73,16 +79,29 @@ export const Sidebar: React.FC = () => {
   const handleSelectConv = (id: string) => {
     dispatch(setActiveConversation(id))
     dispatch(fetchConversationDetails(id))
+    if (activeBot) {
+      updateActiveConversationUrl(activeBot, id)
+    }
     dispatch(setMobileSidebarOpen(false))
   }
 
   const handleSelectBot = (bot: Bot) => {
+    const targetConvId = getSavedConversationId(bot.id)
+    navigateToBot(bot, targetConvId)
     dispatch(setSelectedBot(bot.id))
-    dispatch(fetchBotConversations({ botId: bot.id, botName: bot.name, page: 1 }))
+    dispatch(
+      fetchBotConversations({
+        botId: bot.id,
+        botName: bot.name,
+        page: 1,
+        targetConversationId: targetConvId || undefined,
+      })
+    )
     dispatch(setMobileSidebarOpen(false))
   }
 
   const handleGoHome = () => {
+    navigateToHome()
     dispatch(setSelectedBot(null))
     dispatch(setMobileSidebarOpen(false))
   }
@@ -172,99 +191,118 @@ export const Sidebar: React.FC = () => {
 
         {/* Primary Action Buttons */}
         <div className="p-3 space-y-1.5 border-b border-zinc-100">
-          {/* Return to Bot Selection Hub Button */}
-          <button
-            type="button"
-            onClick={handleGoHome}
-            className={`w-full flex items-center justify-start gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              !selectedBotId
-                ? 'bg-zinc-900 text-white shadow-xs'
-                : 'text-zinc-700 hover:bg-zinc-100 bg-zinc-50/70 border border-zinc-200/80'
-            }`}
-          >
-            <LayoutGrid className="h-3.5 w-3.5" />
-            <span>All AI Agents (Hub)</span>
-          </button>
+          {selectedBotId ? (
+            <>
+              {/* New Chat Button for Active Bot */}
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleNewChat}
+                className="w-full justify-start gap-2 font-medium shadow-xs"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>New Conversation</span>
+              </Button>
 
-          {/* New Chat Button (Active when bot is selected) */}
-          {selectedBotId && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNewChat}
-              className="w-full justify-start gap-2 font-medium border-zinc-200"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>New Conversation</span>
-            </Button>
+              {/* Back to All Agents Hub */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGoHome}
+                className="w-full justify-start gap-2 font-medium text-zinc-700 hover:text-zinc-950 border-zinc-200"
+              >
+                <LayoutGrid className="h-3.5 w-3.5 text-zinc-500" />
+                <span>All Agents (Hub)</span>
+              </Button>
+            </>
+          ) : (
+            <>
+              {/* Home Hub Actions */}
+              <button
+                type="button"
+                onClick={handleGoHome}
+                className="w-full flex items-center justify-start gap-2 px-3 py-2 rounded-lg text-xs font-semibold bg-zinc-900 text-white shadow-xs cursor-pointer"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                <span>All AI Agents (Hub)</span>
+              </button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => dispatch(openCreateBotModal())}
+                className="w-full justify-start gap-2 font-medium"
+              >
+                <Compass className="h-3.5 w-3.5 text-zinc-900" />
+                <span>Create Custom Bot</span>
+              </Button>
+            </>
           )}
-
-          {/* Create Custom Bot Button */}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => dispatch(openCreateBotModal())}
-            className="w-full justify-start gap-2 font-medium"
-          >
-            <Compass className="h-3.5 w-3.5 text-zinc-900" />
-            <span>Create Custom Bot</span>
-          </Button>
         </div>
 
-        {/* AI Bots Quick Selection Switcher */}
-        <div className="px-3 py-2 border-b border-zinc-100">
-          <div className="flex items-center justify-between mb-1.5 px-0.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-              AI Bots {actualBots.length > 0 ? `(${actualBots.length})` : ''}
+        {/* Selected Bot Identity Header (Active Window) OR Bot Selection List (Home Hub) */}
+        {selectedBotId && activeBot ? (
+          <div className="px-3 py-2.5 border-b border-zinc-100 bg-zinc-50/70 flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <Avatar fallback={activeBot.avatar || 'Bot'} size="sm" status="online" className="h-6 w-6 text-[10px]" />
+              <div className="min-w-0">
+                <span className="text-xs font-bold text-zinc-900 truncate block">
+                  {activeBot.name}
+                </span>
+                <span className="text-[10px] text-zinc-400 truncate block">
+                  {activeBot.department || 'AI Specialist'}
+                </span>
+              </div>
+            </div>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold bg-zinc-900 text-white shrink-0">
+              Active Bot
             </span>
-            <button
-              type="button"
-              onClick={() => dispatch(openCreateBotModal())}
-              className="text-[11px] font-medium text-zinc-600 hover:text-zinc-950 flex items-center gap-1 transition-colors cursor-pointer"
-              title="Create new bot"
-            >
-              <Plus className="h-3 w-3" />
-              <span>New</span>
-            </button>
           </div>
+        ) : !selectedBotId ? (
+          /* Only show bots list if on Home Hub */
+          <div className="px-3 py-2 border-b border-zinc-100">
+            <div className="flex items-center justify-between mb-1.5 px-0.5">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                AI Bots {actualBots.length > 0 ? `(${actualBots.length})` : ''}
+              </span>
+              <button
+                type="button"
+                onClick={() => dispatch(openCreateBotModal())}
+                className="text-[11px] font-medium text-zinc-600 hover:text-zinc-950 flex items-center gap-1 transition-colors cursor-pointer"
+                title="Create new bot"
+              >
+                <Plus className="h-3 w-3" />
+                <span>New</span>
+              </button>
+            </div>
 
-          {actualBots.length > 0 ? (
-            <div className="space-y-1 max-h-40 overflow-y-auto pr-0.5 scrollbar-thin">
-              {actualBots.map((bot) => {
-                const isSelected = selectedBotId === bot.id
-
-                return (
+            {actualBots.length > 0 ? (
+              <div className="space-y-1 max-h-40 overflow-y-auto pr-0.5 scrollbar-thin">
+                {actualBots.map((bot) => (
                   <div
                     key={bot.id}
                     onClick={() => handleSelectBot(bot)}
-                    className={`group flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-zinc-100 text-zinc-950 font-semibold border border-zinc-200/80 shadow-2xs'
-                        : 'text-zinc-600 hover:bg-zinc-100/70 hover:text-zinc-900'
-                    }`}
+                    className="group flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-all cursor-pointer text-zinc-600 hover:bg-zinc-100/70 hover:text-zinc-900"
                   >
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar fallback={bot.avatar || 'Bot'} size="sm" className="h-5 w-5 text-[9px]" />
                       <span className="truncate">{bot.name}</span>
                     </div>
-                    {isSelected && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-zinc-900 shrink-0" />
-                    )}
                   </div>
-                )
-              })}
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => dispatch(openCreateBotModal())}
-              className="w-full py-2 px-3 rounded-lg border border-dashed border-zinc-300 hover:border-zinc-900 hover:bg-zinc-50 text-xs font-semibold text-zinc-700 hover:text-zinc-950 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>Create Bot</span>
-            </button>
-          )}
-        </div>
+                ))}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => dispatch(openCreateBotModal())}
+                className="w-full py-2 px-3 rounded-lg border border-dashed border-zinc-300 hover:border-zinc-900 hover:bg-zinc-50 text-xs font-semibold text-zinc-700 hover:text-zinc-950 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>Create Bot</span>
+              </button>
+            )}
+          </div>
+        ) : null}
 
         {/* Search Conversations */}
         <div className="px-3 py-2.5">

@@ -1,6 +1,12 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
 import type { Conversation, ChatMessage, AttachedFile } from '@/types'
 import { conversationsApi, chatApi } from '@/services/api'
+import {
+  getConversationIdFromUrl,
+  getSavedConversationId,
+  saveActiveConversationId,
+  removeSavedConversationId,
+} from '@/utils/routing'
 
 interface ChatState {
   conversations: Conversation[]
@@ -28,12 +34,31 @@ const initialState: ChatState = {
 
 // 1. Fetch conversations for a specific bot (with pagination & lazy-loading, auto-creates on empty)
 export const fetchBotConversations = createAsyncThunk<
-  { items: Conversation[]; total: number; page: number; append: boolean },
-  { botId: string; botName?: string; page?: number; append?: boolean }
+  {
+    items: Conversation[]
+    total: number
+    page: number
+    append: boolean
+    activeConversationId?: string
+  },
+  {
+    botId: string
+    botName?: string
+    page?: number
+    append?: boolean
+    targetConversationId?: string
+  }
 >(
   'chat/fetchBotConversations',
-  async ({ botId, botName, page = 1, append = false }, { dispatch }) => {
+  async ({ botId, botName, page = 1, append = false, targetConversationId }, { dispatch }) => {
     const res = await conversationsApi.list(botId, page, 20)
+
+    // Determine target conversation ID from param, URL, or localStorage
+    const desiredConvId =
+      targetConversationId ||
+      getConversationIdFromUrl() ||
+      getSavedConversationId(botId) ||
+      undefined
 
     // Requirement: if no conversation and nothing received, create first conversation object
     if (res.items.length === 0 && page === 1) {
@@ -54,11 +79,14 @@ export const fetchBotConversations = createAsyncThunk<
         updatedAt: created.updated_at || created.created_at,
       }
 
+      saveActiveConversationId(botId, newConv.id)
+
       return {
         items: [newConv],
         total: 1,
         page: 1,
         append: false,
+        activeConversationId: newConv.id,
       }
     }
 
@@ -80,9 +108,35 @@ export const fetchBotConversations = createAsyncThunk<
         : [],
     }))
 
-    // Automatically load messages of first conversation if page 1
+    let activeId: string | undefined = undefined
+
+    // Resolve active conversation without blindly forcing items[0]
     if (items.length > 0 && !append) {
-      dispatch(fetchConversationDetails(items[0].id))
+      const matched = desiredConvId ? items.find((c) => c.id === desiredConvId) : null
+      if (matched) {
+        activeId = matched.id
+        dispatch(fetchConversationDetails(matched.id))
+      } else if (desiredConvId) {
+        try {
+          const detailed = await dispatch(fetchConversationDetails(desiredConvId)).unwrap()
+          if (detailed) {
+            activeId = detailed.id
+            if (!items.some((c) => c.id === detailed.id)) {
+              items.unshift(detailed)
+            }
+          }
+        } catch {
+          activeId = items[0].id
+          dispatch(fetchConversationDetails(items[0].id))
+        }
+      } else {
+        activeId = items[0].id
+        dispatch(fetchConversationDetails(items[0].id))
+      }
+
+      if (activeId) {
+        saveActiveConversationId(botId, activeId)
+      }
     }
 
     return {
@@ -90,6 +144,7 @@ export const fetchBotConversations = createAsyncThunk<
       total: res.total,
       page,
       append,
+      activeConversationId: activeId,
     }
   }
 )
@@ -164,6 +219,18 @@ export const sendChatMessageThunk = createAsyncThunk<
       page: s.page,
       score: s.score,
     })),
+    usage: res.usage
+      ? {
+          ...res.usage,
+          latency_ms: res.latency_ms,
+          model: res.model,
+        }
+      : res.latency_ms || res.model
+      ? {
+          latency_ms: res.latency_ms,
+          model: res.model,
+        }
+      : undefined,
   }
 
   return { assistantMessage, conversationId }
@@ -175,6 +242,12 @@ export const chatSlice = createSlice({
   reducers: {
     setActiveConversation: (state, action: PayloadAction<string | null>) => {
       state.activeConversationId = action.payload
+      if (action.payload) {
+        const conv = state.conversations.find((c) => c.id === action.payload)
+        if (conv) {
+          saveActiveConversationId(conv.botId, conv.id)
+        }
+      }
     },
     clearConversations: (state) => {
       state.conversations = []
@@ -203,9 +276,18 @@ export const chatSlice = createSlice({
       state.isTyping = action.payload
     },
     deleteConversation: (state, action: PayloadAction<string>) => {
+      const deletedConv = state.conversations.find((c) => c.id === action.payload)
       state.conversations = state.conversations.filter((c) => c.id !== action.payload)
       if (state.activeConversationId === action.payload) {
-        state.activeConversationId = state.conversations.length > 0 ? state.conversations[0].id : null
+        const nextId = state.conversations.length > 0 ? state.conversations[0].id : null
+        state.activeConversationId = nextId
+        if (deletedConv) {
+          if (nextId) {
+            saveActiveConversationId(deletedConv.botId, nextId)
+          } else {
+            removeSavedConversationId(deletedConv.botId)
+          }
+        }
       }
     },
     togglePinConversation: (state, action: PayloadAction<string>) => {
@@ -239,7 +321,9 @@ export const chatSlice = createSlice({
           state.conversations.push(...newItems)
         } else {
           state.conversations = action.payload.items
-          if (action.payload.items.length > 0) {
+          if (action.payload.activeConversationId) {
+            state.activeConversationId = action.payload.activeConversationId
+          } else if (action.payload.items.length > 0) {
             state.activeConversationId = action.payload.items[0].id
           } else {
             state.activeConversationId = null
@@ -266,6 +350,7 @@ export const chatSlice = createSlice({
           state.conversations.unshift(action.payload)
         }
         state.activeConversationId = action.payload.id
+        saveActiveConversationId(action.payload.botId, action.payload.id)
       })
       .addCase(fetchConversationDetails.rejected, (state) => {
         state.isLoadingMessages = false
@@ -276,6 +361,7 @@ export const chatSlice = createSlice({
       state.conversations.unshift(action.payload)
       state.activeConversationId = action.payload.id
       state.totalConversations += 1
+      saveActiveConversationId(action.payload.botId, action.payload.id)
     })
 
     // sendChatMessageThunk

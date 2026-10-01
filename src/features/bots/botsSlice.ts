@@ -29,6 +29,13 @@ export const createBotWithDocuments = createAsyncThunk<
     const newBot: Bot = {
       id: res.id,
       name: res.name,
+      slug:
+        res.slug ||
+        res.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') ||
+        res.id,
       role: res.description
         ? res.description.length > 40
           ? res.description.slice(0, 37) + '...'
@@ -83,6 +90,13 @@ export function mapBackendBotToBot(remote: BackendBotResponse): Bot {
   return {
     id: remote.id,
     name: remote.name,
+    slug:
+      remote.slug ||
+      remote.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '') ||
+      remote.id,
     role: remote.description
       ? remote.description.length > 50
         ? remote.description.slice(0, 47) + '...'

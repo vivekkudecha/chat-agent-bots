@@ -1,11 +1,17 @@
-import React, { useState } from 'react'
-import { FileText, Info, PlusCircle, ArrowLeft } from 'lucide-react'
+import React, { useState, useMemo } from 'react'
+import { FileText, Info, PlusCircle, ArrowLeft, History, Search, Loader2 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
-import { useAppDispatch } from '@/app/hooks'
-import { createConversationThunk } from '@/features/chat/chatSlice'
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import {
+  createConversationThunk,
+  setActiveConversation,
+  fetchConversationDetails,
+  fetchBotConversations,
+} from '@/features/chat/chatSlice'
+import { updateActiveConversationUrl } from '@/utils/routing'
 import type { Bot, Conversation } from '@/types'
 
 interface ChatHeaderProps {
@@ -16,15 +22,55 @@ interface ChatHeaderProps {
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({ bot, onBackToHub }) => {
   const dispatch = useAppDispatch()
+  const {
+    conversations,
+    activeConversationId,
+    totalConversations,
+    currentPage,
+    isLoadingMore,
+  } = useAppSelector((state) => state.chat)
+
   const [showPromptModal, setShowPromptModal] = useState(false)
   const [showFilesModal, setShowFilesModal] = useState(false)
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [historySearch, setHistorySearch] = useState('')
 
   const botName = bot?.name || 'AI Assistant'
   const botRole = bot?.role || 'Enterprise Specialist'
 
+  const filteredConversations = useMemo(() => {
+    if (!historySearch.trim()) return conversations
+    return conversations.filter((c) =>
+      c.title.toLowerCase().includes(historySearch.toLowerCase())
+    )
+  }, [conversations, historySearch])
+
   const handleNewChat = () => {
     if (bot) {
       dispatch(createConversationThunk({ botId: bot.id, title: `Chat with ${bot.name}` }))
+      setShowHistoryModal(false)
+    }
+  }
+
+  const handleSelectConv = (convId: string) => {
+    dispatch(setActiveConversation(convId))
+    dispatch(fetchConversationDetails(convId))
+    if (bot) {
+      updateActiveConversationUrl(bot, convId)
+    }
+    setShowHistoryModal(false)
+  }
+
+  const handleLoadMore = () => {
+    if (bot && !isLoadingMore) {
+      dispatch(
+        fetchBotConversations({
+          botId: bot.id,
+          botName: bot.name,
+          page: currentPage + 1,
+          append: true,
+        })
+      )
     }
   }
 
@@ -38,7 +84,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ bot, onBackToHub }) => {
               type="button"
               onClick={onBackToHub}
               className="p-1.5 -ml-1 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
-              title="Back to Bot Selection"
+              title="Back to Bot Selection Hub"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Agents</span>
@@ -66,8 +112,25 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ bot, onBackToHub }) => {
           </div>
         </div>
 
-        {/* Right: Knowledge attachments, prompt details, and actions */}
+        {/* Right: History button, Knowledge attachments, prompt details, and actions */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* Button to view & switch bot-related conversations */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowHistoryModal(true)}
+            className="gap-1.5 text-xs font-semibold"
+            title="View previous conversations with this bot"
+          >
+            <History className="h-3.5 w-3.5 text-zinc-700" />
+            <span className="hidden sm:inline">Chat History</span>
+            {conversations.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-zinc-100 text-zinc-700 text-[10px] font-bold">
+                {conversations.length}
+              </span>
+            )}
+          </Button>
+
           {bot?.knowledgeFiles && bot.knowledgeFiles.length > 0 ? (
             <button
               type="button"
@@ -92,13 +155,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ bot, onBackToHub }) => {
           ) : null}
 
           <Button
-            variant="outline"
+            variant="primary"
             size="sm"
             onClick={handleNewChat}
-            className="gap-1.5"
+            className="gap-1.5 shadow-xs"
             title="Start fresh conversation with this bot"
           >
-            <PlusCircle className="h-3.5 w-3.5 text-zinc-800" />
+            <PlusCircle className="h-3.5 w-3.5 text-zinc-100" />
             <span className="hidden sm:inline">New Session</span>
           </Button>
         </div>
@@ -156,6 +219,107 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ bot, onBackToHub }) => {
               Close
             </Button>
           </div>
+        </div>
+      </Dialog>
+
+      {/* Bot Chat History Modal */}
+      <Dialog
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        title={`${botName} • Chat History`}
+        description={`Switch between previous conversations or start a new chat with ${botName}.`}
+        maxWidth="md"
+      >
+        <div className="space-y-3">
+          {/* Actions & Search */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Search conversations..."
+                value={historySearch}
+                onChange={(e) => setHistorySearch(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-950 focus:bg-white"
+              />
+            </div>
+
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleNewChat}
+              className="gap-1.5 shrink-0 text-xs shadow-xs"
+            >
+              <PlusCircle className="h-3.5 w-3.5" />
+              <span>New Chat</span>
+            </Button>
+          </div>
+
+          {/* Conversations List */}
+          <div className="max-h-72 overflow-y-auto space-y-1.5 pr-0.5 scrollbar-thin">
+            {filteredConversations.length > 0 ? (
+              filteredConversations.map((conv) => {
+                const isActive = activeConversationId === conv.id
+
+                return (
+                  <div
+                    key={conv.id}
+                    onClick={() => handleSelectConv(conv.id)}
+                    className={`flex items-center justify-between p-3 rounded-lg border text-xs transition-all cursor-pointer ${
+                      isActive
+                        ? 'border-zinc-950 bg-zinc-50 ring-1 ring-zinc-950/20 shadow-2xs font-semibold'
+                        : 'border-zinc-200 bg-white hover:border-zinc-400 hover:bg-zinc-50/70 shadow-2xs'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-zinc-900 font-medium">
+                          {conv.title}
+                        </span>
+                        {isActive && (
+                          <span className="text-[10px] bg-zinc-900 text-white px-1.5 py-0.2 rounded font-semibold shrink-0">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-zinc-400 mt-0.5">
+                        {conv.updatedAt ? new Date(conv.updatedAt).toLocaleString() : 'Recent'}
+                      </p>
+                    </div>
+
+                    <span className="text-[11px] text-zinc-500 font-medium shrink-0 ml-2">
+                      {conv.messages.length} msg{conv.messages.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="py-8 text-center text-xs text-zinc-400">
+                {historySearch ? 'No matching conversations' : 'No previous conversations with this bot'}
+              </div>
+            )}
+          </div>
+
+          {/* Load More Pagination */}
+          {totalConversations > conversations.length && (
+            <div className="pt-2 border-t border-zinc-100">
+              <button
+                type="button"
+                disabled={isLoadingMore}
+                onClick={handleLoadMore}
+                className="w-full py-1.5 px-3 text-xs font-medium text-zinc-600 hover:text-zinc-950 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isLoadingMore ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-600" />
+                    <span>Loading more conversations...</span>
+                  </>
+                ) : (
+                  <span>Load more ({conversations.length} of {totalConversations})</span>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </Dialog>
     </>

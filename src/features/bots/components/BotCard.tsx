@@ -7,6 +7,7 @@ import { useAppDispatch } from '@/app/hooks'
 import { fetchBotConversations } from '@/features/chat/chatSlice'
 import { setSelectedBot } from '@/features/bots/botsSlice'
 import { setActiveTab } from '@/features/ui/uiSlice'
+import { navigateToBot, getSavedConversationId } from '@/utils/routing'
 
 interface BotCardProps {
   bot: Bot
@@ -29,12 +30,15 @@ export const BotCard: React.FC<BotCardProps> = ({
     if (onChat) {
       onChat(bot)
     } else {
+      const targetConvId = getSavedConversationId(bot.id)
+      navigateToBot(bot, targetConvId)
       dispatch(setSelectedBot(bot.id))
       dispatch(
         fetchBotConversations({
           botId: bot.id,
           botName: bot.name,
           page: 1,
+          targetConversationId: targetConvId || undefined,
         })
       )
       dispatch(setActiveTab('chat'))

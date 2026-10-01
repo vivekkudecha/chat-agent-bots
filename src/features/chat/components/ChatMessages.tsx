@@ -19,6 +19,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   const dispatch = useAppDispatch()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [activeDetail, setActiveDetail] = useState<{ msgId: string; type: 'sources' | 'usage' } | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -150,14 +151,68 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 {/* Message Text with simple formatting */}
                 <div className="whitespace-pre-wrap">{msg.text}</div>
 
-                {/* Copy button for assistant */}
+                {/* Assistant Message Actions & Metadata Icons */}
                 {!isUser ? (
-                  <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-400">
-                    <span>{msg.timestamp}</span>
+                  <div className="mt-3 pt-2.5 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-500">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span>{msg.timestamp}</span>
+
+                      {/* Small Icon for Grounded Sources (if available) */}
+                      {msg.sources && msg.sources.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setActiveDetail((prev) =>
+                              prev?.msgId === msg.id && prev.type === 'sources'
+                                ? null
+                                : { msgId: msg.id, type: 'sources' }
+                            )
+                          }
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold transition-colors cursor-pointer ${
+                            activeDetail?.msgId === msg.id && activeDetail.type === 'sources'
+                              ? 'bg-zinc-900 text-white shadow-2xs'
+                              : 'text-zinc-600 hover:text-zinc-950 bg-zinc-100/80 hover:bg-zinc-200/80 border border-zinc-200'
+                          }`}
+                          title="Click to view grounded sources"
+                        >
+                          <FileText className="h-3 w-3" />
+                          <span>Sources ({msg.sources.length})</span>
+                        </button>
+                      ) : null}
+
+                      {/* Small Icon for Token Usage & Latency (if available) */}
+                      {msg.usage ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setActiveDetail((prev) =>
+                              prev?.msgId === msg.id && prev.type === 'usage'
+                                ? null
+                                : { msgId: msg.id, type: 'usage' }
+                            )
+                          }
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold transition-colors cursor-pointer ${
+                            activeDetail?.msgId === msg.id && activeDetail.type === 'usage'
+                              ? 'bg-zinc-900 text-white shadow-2xs'
+                              : 'text-zinc-600 hover:text-zinc-950 bg-zinc-100/80 hover:bg-zinc-200/80 border border-zinc-200'
+                          }`}
+                          title="Click to view token usage & metrics"
+                        >
+                          <Sparkles className="h-3 w-3 text-amber-500" />
+                          <span>
+                            {typeof msg.usage.total_tokens === 'number'
+                              ? `${msg.usage.total_tokens} tokens`
+                              : 'Usage'}
+                          </span>
+                        </button>
+                      ) : null}
+                    </div>
+
+                    {/* Copy message button */}
                     <button
                       type="button"
                       onClick={() => handleCopy(msg.id, msg.text)}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-zinc-100 hover:text-zinc-700 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-zinc-100 hover:text-zinc-800 transition-colors cursor-pointer text-zinc-400"
                     >
                       {copiedId === msg.id ? (
                         <>
@@ -177,6 +232,133 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                     {msg.timestamp}
                   </div>
                 )}
+
+                {/* Sources Details Panel: ONLY visible when user clicks the sources icon */}
+                {!isUser &&
+                  activeDetail?.msgId === msg.id &&
+                  activeDetail.type === 'sources' &&
+                  msg.sources &&
+                  msg.sources.length > 0 && (
+                    <div className="mt-3 p-3 rounded-lg bg-zinc-50 border border-zinc-200/90 text-xs animate-in fade-in slide-in-from-top-1">
+                      <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-200">
+                        <div className="flex items-center gap-1.5 font-bold text-zinc-900 text-[11px]">
+                          <FileText className="h-3.5 w-3.5 text-zinc-700" />
+                          <span>Grounded Document Sources ({msg.sources.length})</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveDetail(null)}
+                          className="text-zinc-400 hover:text-zinc-900 text-[11px] p-0.5 rounded cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {msg.sources.map((src, sIdx) => {
+                          const scorePercent =
+                            typeof src.score === 'number'
+                              ? `${Math.round(src.score * 100)}% Match`
+                              : null
+
+                          return (
+                            <div
+                              key={sIdx}
+                              className="p-2.5 rounded-md bg-white border border-zinc-200 flex items-start justify-between gap-3 shadow-2xs"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-semibold text-zinc-900 truncate">
+                                    {src.fileName}
+                                  </span>
+                                  {src.page ? (
+                                    <span className="text-[10px] text-zinc-500 bg-zinc-100 px-1.5 py-0.2 rounded font-medium shrink-0">
+                                      Page {src.page}
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <p className="text-[10px] font-mono text-zinc-400 truncate mt-0.5">
+                                  ID: {src.documentId}
+                                </p>
+                              </div>
+
+                              {scorePercent ? (
+                                <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                  {scorePercent}
+                                </span>
+                              ) : null}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Token Usage Details Panel: ONLY visible when user clicks the usage icon */}
+                {!isUser &&
+                  activeDetail?.msgId === msg.id &&
+                  activeDetail.type === 'usage' &&
+                  msg.usage && (
+                    <div className="mt-3 p-3 rounded-lg bg-zinc-50 border border-zinc-200/90 text-xs animate-in fade-in slide-in-from-top-1">
+                      <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-200">
+                        <div className="flex items-center gap-1.5 font-bold text-zinc-900 text-[11px]">
+                          <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                          <span>Generation & Token Metrics</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveDetail(null)}
+                          className="text-zinc-400 hover:text-zinc-900 text-[11px] p-0.5 rounded cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                        <div className="p-2 rounded bg-white border border-zinc-200">
+                          <span className="block text-[10px] text-zinc-400 font-medium">
+                            Total Tokens
+                          </span>
+                          <span className="text-xs font-bold text-zinc-900 mt-0.5 block">
+                            {msg.usage.total_tokens ?? 'N/A'}
+                          </span>
+                        </div>
+
+                        <div className="p-2 rounded bg-white border border-zinc-200">
+                          <span className="block text-[10px] text-zinc-400 font-medium">
+                            Prompt
+                          </span>
+                          <span className="text-xs font-bold text-zinc-900 mt-0.5 block">
+                            {msg.usage.prompt_tokens ?? 'N/A'}
+                          </span>
+                        </div>
+
+                        <div className="p-2 rounded bg-white border border-zinc-200">
+                          <span className="block text-[10px] text-zinc-400 font-medium">
+                            Completion
+                          </span>
+                          <span className="text-xs font-bold text-zinc-900 mt-0.5 block">
+                            {msg.usage.completion_tokens ?? 'N/A'}
+                          </span>
+                        </div>
+
+                        <div className="p-2 rounded bg-white border border-zinc-200">
+                          <span className="block text-[10px] text-zinc-400 font-medium">
+                            Latency
+                          </span>
+                          <span className="text-xs font-bold text-zinc-900 mt-0.5 block">
+                            {msg.usage.latency_ms ? `${msg.usage.latency_ms}ms` : 'Fast'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {msg.usage.model && (
+                        <p className="mt-2 text-[10px] text-zinc-400 font-mono text-center">
+                          Model: {String(msg.usage.model)}
+                        </p>
+                      )}
+                    </div>
+                  )}
               </div>
             </div>
           </div>

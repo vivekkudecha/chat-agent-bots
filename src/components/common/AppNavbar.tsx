@@ -7,6 +7,7 @@ import {
 } from '@/features/ui/uiSlice'
 import { createConversationThunk } from '@/features/chat/chatSlice'
 import { setSelectedBot } from '@/features/bots/botsSlice'
+import { navigateToHome } from '@/utils/routing'
 import { Button } from '@/components/ui/button'
 
 export const AppNavbar: React.FC = () => {
@@ -29,6 +30,7 @@ export const AppNavbar: React.FC = () => {
   }
 
   const handleBackToHub = () => {
+    navigateToHome()
     dispatch(setSelectedBot(null))
   }
 

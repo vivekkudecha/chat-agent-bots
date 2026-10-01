@@ -18,6 +18,7 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { closeCreateBotModal, setActiveTab } from '@/features/ui/uiSlice'
 import { createBotWithDocuments, clearCreateError, setSelectedBot } from '@/features/bots/botsSlice'
 import { fetchBotConversations } from '@/features/chat/chatSlice'
+import { navigateToBot } from '@/utils/routing'
 
 export const CreateBotModal: React.FC = () => {
   const dispatch = useAppDispatch()
@@ -120,6 +121,7 @@ export const CreateBotModal: React.FC = () => {
       ).unwrap()
 
       // Automatically launch chat with newly created bot
+      navigateToBot(createdBot)
       dispatch(setSelectedBot(createdBot.id))
       dispatch(
         fetchBotConversations({

@@ -244,9 +244,16 @@ export interface ChatApiResult {
   message_id: string
   content: string
   model?: string
+  latency_ms?: number
+  usage?: {
+    prompt_tokens?: number
+    completion_tokens?: number
+    total_tokens?: number
+    [key: string]: unknown
+  }
   sources?: Array<{
     document_id: string
-    knowledge_base_id: string
+    knowledge_base_id?: string
     file_name: string
     page?: number
     score?: number
