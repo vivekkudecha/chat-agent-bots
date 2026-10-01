@@ -4,7 +4,8 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import type { Bot } from '@/types'
 import { useAppDispatch } from '@/app/hooks'
-import { startNewChatWithBot } from '@/features/chat/chatSlice'
+import { fetchBotConversations } from '@/features/chat/chatSlice'
+import { setSelectedBot } from '@/features/bots/botsSlice'
 import { setActiveTab } from '@/features/ui/uiSlice'
 
 interface BotCardProps {
@@ -28,10 +29,12 @@ export const BotCard: React.FC<BotCardProps> = ({
     if (onChat) {
       onChat(bot)
     } else {
+      dispatch(setSelectedBot(bot.id))
       dispatch(
-        startNewChatWithBot({
+        fetchBotConversations({
           botId: bot.id,
           botName: bot.name,
+          page: 1,
         })
       )
       dispatch(setActiveTab('chat'))

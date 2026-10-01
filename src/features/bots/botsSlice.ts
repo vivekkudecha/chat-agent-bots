@@ -1,156 +1,161 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { Bot, AttachedFile } from '@/types'
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
+import axios from 'axios'
+import type { Bot, AttachedFile, CreateBotApiPayload } from '@/types'
+import { botsApi, type BackendBotResponse } from '@/services/api'
 
-const initialOrgBots: Bot[] = [
-  {
-    id: 'bot-org-1',
-    name: 'Customer Success Copilot',
-    role: 'Enterprise SLA & Support Specialist',
-    department: 'Customer Support',
-    description:
-      'Resolves complex customer inquiries, audits SLA breach tickets, and drafts empathetic executive resolution briefs.',
+export const createBotWithDocuments = createAsyncThunk<
+  Bot,
+  CreateBotApiPayload,
+  { rejectValue: string }
+>('bots/createBotWithDocuments', async (payload, { rejectWithValue }) => {
+  try {
+    const res = await botsApi.createBotWithDocuments(payload)
+    const version = res.versions?.[0]
+    const knowledgeFiles: AttachedFile[] =
+      res.documents && res.documents.length > 0
+        ? res.documents.map((doc) => ({
+            id: doc.id,
+            name: doc.original_name,
+            size: doc.file_size,
+            type: 'application/octet-stream',
+          }))
+        : payload.files?.map((f) => ({
+            id: `f-${Date.now()}-${f.name}`,
+            name: f.name,
+            size: f.size,
+            type: f.type,
+          })) || []
+
+    const newBot: Bot = {
+      id: res.id,
+      name: res.name,
+      role: res.description
+        ? res.description.length > 40
+          ? res.description.slice(0, 37) + '...'
+          : res.description
+        : 'Custom AI Bot',
+      department: 'Custom',
+      description: res.description || payload.description || 'Custom AI Bot',
+      systemInstruction: version?.system_instruction || payload.system_instruction,
+      welcomeMessage: version?.welcome_message || payload.welcome_message,
+      visibility: res.visibility || payload.visibility || 'private',
+      avatar: 'Bot',
+      category: 'Custom',
+      badge: res.visibility === 'private' ? 'Private Bot' : 'Custom Bot',
+      knowledgeFiles,
+      suggestedPrompts:
+        version?.conversation_starters && version.conversation_starters.length > 0
+          ? version.conversation_starters
+          : payload.conversation_starters && payload.conversation_starters.length > 0
+          ? payload.conversation_starters
+          : [
+              `Summarize what knowledge you have in your files`,
+              `Help me with a task based on your instructions`,
+            ],
+      isCustom: true,
+      createdAt: res.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+    }
+
+    return newBot
+  } catch (err: unknown) {
+    let msg = 'Failed to create bot'
+    if (axios.isAxiosError(err)) {
+      msg =
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        err.response?.data?.error?.message ||
+        err.message ||
+        msg
+    } else if (err instanceof Error) {
+      msg = err.message
+    }
+    return rejectWithValue(msg)
+  }
+})
+
+export function mapBackendBotToBot(remote: BackendBotResponse): Bot {
+  const version = remote.versions?.[0]
+  const department =
+    (remote.metadata && typeof remote.metadata === 'object' && 'department' in remote.metadata
+      ? String(remote.metadata.department)
+      : null) || 'Custom AI'
+
+  return {
+    id: remote.id,
+    name: remote.name,
+    role: remote.description
+      ? remote.description.length > 50
+        ? remote.description.slice(0, 47) + '...'
+        : remote.description
+      : 'AI Assistant',
+    department,
+    description: remote.description || 'Custom AI Bot',
     systemInstruction:
-      'You are a high-level Customer Success and Support Specialist for enterprise clients. Always provide polite, professional, and actionable resolutions.',
-    avatar: 'Headphones',
-    category: 'Enterprise',
-    badge: 'Recommended',
-    knowledgeFiles: [
-      { id: 'f-1', name: 'enterprise_sla_guidelines_2026.pdf', size: 142000, type: 'application/pdf' },
-      { id: 'f-2', name: 'tier3_escalation_matrix.json', size: 28000, type: 'application/json' },
-    ],
-    suggestedPrompts: [
-      'Draft a high-priority SLA mitigation response for an outage',
-      'Analyze customer churn risk for account ACME Corp',
-      'Generate a Q3 customer satisfaction recap brief',
-    ],
-    isCustom: false,
-    createdAt: '2026-01-15',
-  },
-  {
-    id: 'bot-org-2',
-    name: 'Cloud Architecture & Code Reviewer',
-    role: 'Full-Stack Systems & Security Auditor',
-    department: 'Engineering',
-    description:
-      'Analyzes microservice topologies, reviews pull requests, optimizes cloud latency, and enforces SOLID architecture.',
-    systemInstruction:
-      'You are a Principal Cloud Systems Architect. Provide idiomatic, clean, modular, and performant code recommendations.',
-    avatar: 'Code2',
-    category: 'Engineering',
-    badge: 'Popular',
-    knowledgeFiles: [
-      { id: 'f-3', name: 'cloud_infra_security_standards.pdf', size: 310000, type: 'application/pdf' },
-    ],
-    suggestedPrompts: [
-      'Review my Redux store architecture for race conditions',
-      'Design an event-driven ingestion pipeline with retry DLQs',
-      'Audit this Dockerfile for minimal attack surface',
-    ],
-    isCustom: false,
-    createdAt: '2026-02-01',
-  },
-  {
-    id: 'bot-org-3',
-    name: 'Data Intelligence & Analytics Guru',
-    role: 'BigQuery, SQL & BI Analytics Lead',
-    department: 'Data & Analytics',
-    description:
-      'Transforms raw telemetry into executive KPI dashboards, constructs performant BigQuery models, and detects trends.',
-    systemInstruction:
-      'You are an expert Data Engineer and Analytics Specialist. Focus on query optimization, partition pruning, and executive data storytelling.',
-    avatar: 'BarChart3',
-    category: 'Operations',
-    badge: 'Enterprise',
-    knowledgeFiles: [
-      { id: 'f-4', name: 'telemetry_data_dictionary.csv', size: 89000, type: 'text/csv' },
-    ],
-    suggestedPrompts: [
-      'Write an optimized BigQuery SQL query to track monthly active churn',
-      'Explain window functions for cohort retention',
-      'Suggest schema partitioning for 10TB/day log streams',
-    ],
-    isCustom: false,
-    createdAt: '2026-02-10',
-  },
-  {
-    id: 'bot-org-4',
-    name: 'Legal & Compliance Navigator',
-    role: 'Contract Review & Regulatory Counsel',
-    department: 'Legal & Compliance',
-    description:
-      'Screens Master Service Agreements, identifies non-standard indemnification clauses, and verifies GDPR/SOC2 adherence.',
-    systemInstruction:
-      'You are an Enterprise Legal and Compliance Specialist. Highlight potential contractual risks with precise clause references.',
-    avatar: 'Scale',
-    category: 'Finance & Legal',
-    badge: 'Verified',
-    knowledgeFiles: [
-      { id: 'f-5', name: 'soc2_security_policies_v4.pdf', size: 520000, type: 'application/pdf' },
-    ],
-    suggestedPrompts: [
-      'Highlight liability risks in a standard SaaS agreement',
-      'Verify whether customer data storage violates GDPR transfer regulations',
-      'Generate a standardized NDA agreement checklist',
-    ],
-    isCustom: false,
-    createdAt: '2026-03-01',
-  },
-  {
-    id: 'bot-org-5',
-    name: 'Product Strategy & PRD Copilot',
-    role: 'Principal Product Manager',
-    department: 'Product Management',
-    description:
-      'Drafts crisp Product Requirement Documents (PRDs), writes acceptance criteria, and constructs roadmap prioritization matrices.',
-    systemInstruction:
-      'You are a seasoned Principal Product Manager. Structure requirements with user problem statements, non-functional requirements, and success metrics.',
-    avatar: 'Layers',
-    category: 'Enterprise',
-    suggestedPrompts: [
-      'Draft a PRD for an AI chat conversational bot builder',
-      'Create user stories with Gherkin acceptance criteria for file upload',
-      'Build a RICE prioritization score for 5 pending features',
-    ],
-    isCustom: false,
-    createdAt: '2026-03-12',
-  },
-]
+      version?.system_instruction || 'You are an intelligent enterprise AI assistant.',
+    welcomeMessage:
+      version?.welcome_message || `Hello! I am ${remote.name}. How can I assist you today?`,
+    visibility: remote.visibility || 'private',
+    avatar: remote.avatar_url || 'Bot',
+    category: 'Custom',
+    badge:
+      remote.visibility === 'private'
+        ? 'Private'
+        : remote.visibility === 'public'
+        ? 'Public'
+        : 'Organization',
+    knowledgeFiles:
+      remote.documents?.map((d) => ({
+        id: d.id,
+        name: d.original_name,
+        size: d.file_size,
+        type: 'application/octet-stream',
+      })) || [],
+    suggestedPrompts:
+      version?.conversation_starters && version.conversation_starters.length > 0
+        ? version.conversation_starters
+        : [
+            `What can you help me with?`,
+            `Summarize your knowledge sources`,
+          ],
+    isCustom: true,
+    createdAt: remote.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+  }
+}
+
+export const fetchRemoteBots = createAsyncThunk<Bot[]>('bots/fetchRemoteBots', async () => {
+  try {
+    const items = await botsApi.getBots()
+    return items.map(mapBackendBotToBot)
+  } catch (err) {
+    console.warn('Failed to load remote bots:', err)
+    return []
+  }
+})
 
 interface BotsState {
+  actualBots: Bot[]
   organizationBots: Bot[]
   customBots: Bot[]
   selectedBotId: string | null
   activeCategory: string
   searchQuery: string
+  isLoadingBots: boolean
+  isCreating: boolean
+  createError: string | null
+  fetchError: string | null
 }
 
 const initialState: BotsState = {
-  organizationBots: initialOrgBots,
-  customBots: [
-    {
-      id: 'bot-custom-1',
-      name: 'Internal TataTel FAQ Helper',
-      role: 'Company Policies & IT Helpdesk',
-      department: 'IT & HR',
-      description: 'Custom trained bot on company IT handbook and internal knowledge base.',
-      systemInstruction: 'Answer queries accurately based only on the uploaded IT handbook.',
-      avatar: 'Cpu',
-      category: 'Custom',
-      badge: 'Custom Bot',
-      knowledgeFiles: [
-        { id: 'f-custom-1', name: 'tatatel_employee_handbook.pdf', size: 215000, type: 'application/pdf' },
-      ],
-      suggestedPrompts: [
-        'What is the VPN setup procedure for new employees?',
-        'How do I request hardware upgrade budget approval?',
-      ],
-      isCustom: true,
-      createdAt: '2026-03-25',
-    },
-  ],
+  actualBots: [],
+  organizationBots: [],
+  customBots: [],
   selectedBotId: null,
   activeCategory: 'All',
   searchQuery: '',
+  isLoadingBots: false,
+  isCreating: false,
+  createError: null,
+  fetchError: null,
 }
 
 export const botsSlice = createSlice({
@@ -161,11 +166,14 @@ export const botsSlice = createSlice({
       state,
       action: PayloadAction<{
         name: string
-        role: string
-        description: string
+        role?: string
+        description?: string
         systemInstruction: string
+        welcomeMessage?: string
+        visibility?: 'private' | 'organization' | 'public'
         avatar?: string
         files?: AttachedFile[]
+        suggestedPrompts?: string[]
       }>
     ) => {
       const newBot: Bot = {
@@ -174,11 +182,13 @@ export const botsSlice = createSlice({
         role: action.payload.role || 'Custom Specialist',
         description: action.payload.description || 'Custom tailored AI Assistant',
         systemInstruction: action.payload.systemInstruction,
-        avatar: action.payload.avatar || action.payload.name.slice(0, 2).toUpperCase(),
+        welcomeMessage: action.payload.welcomeMessage,
+        visibility: action.payload.visibility || 'private',
+        avatar: action.payload.avatar || 'Bot',
         category: 'Custom',
-        badge: 'Custom Bot',
+        badge: action.payload.visibility === 'private' ? 'Private Bot' : 'Custom Bot',
         knowledgeFiles: action.payload.files || [],
-        suggestedPrompts: [
+        suggestedPrompts: action.payload.suggestedPrompts || [
           `Summarize what knowledge you have in your files`,
           `Help me with a task based on your instructions`,
         ],
@@ -203,6 +213,57 @@ export const botsSlice = createSlice({
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload
     },
+    clearCreateError: (state) => {
+      state.createError = null
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(createBotWithDocuments.pending, (state) => {
+        state.isCreating = true
+        state.createError = null
+      })
+      .addCase(createBotWithDocuments.fulfilled, (state, action) => {
+        state.isCreating = false
+        state.createError = null
+
+        // Add to actualBots
+        const actualIdx = state.actualBots.findIndex((b) => b.id === action.payload.id)
+        if (actualIdx >= 0) {
+          state.actualBots[actualIdx] = action.payload
+        } else {
+          state.actualBots.unshift(action.payload)
+        }
+
+        // Add to customBots
+        const customIdx = state.customBots.findIndex((b) => b.id === action.payload.id)
+        if (customIdx >= 0) {
+          state.customBots[customIdx] = action.payload
+        } else {
+          state.customBots.unshift(action.payload)
+        }
+
+        state.selectedBotId = action.payload.id
+      })
+      .addCase(createBotWithDocuments.rejected, (state, action) => {
+        state.isCreating = false
+        state.createError = action.payload || action.error.message || 'Failed to create bot'
+      })
+      .addCase(fetchRemoteBots.pending, (state) => {
+        state.isLoadingBots = true
+        state.fetchError = null
+      })
+      .addCase(fetchRemoteBots.fulfilled, (state, action: PayloadAction<Bot[]>) => {
+        state.isLoadingBots = false
+        state.actualBots = action.payload
+        state.customBots = action.payload
+        state.organizationBots = action.payload
+        // Keep selectedBotId as null by default so user starts on Bot Selection Hub
+      })
+      .addCase(fetchRemoteBots.rejected, (state, action) => {
+        state.isLoadingBots = false
+        state.fetchError = action.error.message || 'Failed to load bots'
+      })
   },
 })
 
@@ -212,6 +273,7 @@ export const {
   setSelectedBot,
   setActiveCategory,
   setSearchQuery,
+  clearCreateError,
 } = botsSlice.actions
 
 export default botsSlice.reducer

@@ -1,91 +1,173 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { Conversation, AttachedFile } from '@/types'
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
+import type { Conversation, ChatMessage, AttachedFile } from '@/types'
+import { conversationsApi, chatApi } from '@/services/api'
 
 interface ChatState {
   conversations: Conversation[]
   activeConversationId: string | null
+  totalConversations: number
+  currentPage: number
+  isLoadingConversations: boolean
+  isLoadingMore: boolean
+  isLoadingMessages: boolean
   isTyping: boolean
+  error: string | null
 }
-
-const initialConversations: Conversation[] = [
-  {
-    id: 'conv-new',
-    botId: 'bot-org-1',
-    title: 'New Chat Session',
-    updatedAt: new Date().toISOString(),
-    isPinned: false,
-    messages: [],
-  },
-  {
-    id: 'conv-1',
-    botId: 'bot-org-2',
-    title: 'Customer Portal Auth Architecture Review',
-    updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30m ago
-    isPinned: true,
-    messages: [
-      {
-        id: 'msg-1',
-        sender: 'user',
-        text: 'Review our proposed OAuth 2.1 PKCE authorization flow for the customer-facing portal.',
-        timestamp: '10:15 AM',
-      },
-      {
-        id: 'msg-2',
-        sender: 'assistant',
-        text: 'Here is an architectural review of your OAuth 2.1 PKCE proposal:\n\n1. **Security Posture**: PKCE is strongly recommended for Single Page Apps (SPAs) as it mitigates authorization code injection attacks.\n2. **Token Storage**: Ensure access tokens are kept in memory or secure HTTP-only cookies, not in `localStorage` where XSS attacks can extract them.\n3. **Token Refresh Strategy**: Use rotating refresh tokens with detection of token replay to instantly invalidate compromised session trees.',
-        timestamp: '10:16 AM',
-      },
-    ],
-  },
-  {
-    id: 'conv-2',
-    botId: 'bot-custom-1',
-    title: 'TataTel VPN Setup & Hardware Upgrade FAQ',
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), // 3 hours ago
-    isPinned: false,
-    messages: [
-      {
-        id: 'msg-3',
-        sender: 'user',
-        text: 'How do I configure WireGuard VPN for remote staging environment access?',
-        timestamp: '08:42 AM',
-      },
-      {
-        id: 'msg-4',
-        sender: 'assistant',
-        text: 'Based on the uploaded **tatatel_employee_handbook.pdf**:\n\n1. Download the official WireGuard client from the TataTel IT portal.\n2. Request your client config file from the IT Slack channel `#it-helpdesk`.\n3. Import the `.conf` file and connect using your TataTel SSO credentials.\n4. Ensure split-tunneling is active so your standard web browsing is not routed through staging.',
-        timestamp: '08:43 AM',
-      },
-    ],
-  },
-  {
-    id: 'conv-3',
-    botId: 'bot-org-1',
-    title: 'Q3 Enterprise SLA Outage Mitigation Brief',
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(), // Yesterday
-    isPinned: false,
-    messages: [
-      {
-        id: 'msg-5',
-        sender: 'user',
-        text: 'Draft an executive resolution email for the 14-minute DNS blip on Monday.',
-        timestamp: 'Yesterday',
-      },
-      {
-        id: 'msg-6',
-        sender: 'assistant',
-        text: 'Subject: Executive Briefing & Post-Incident Resolution - September 28 DNS Latency\n\nDear Leadership Team,\n\nWe have concluded our root cause investigation into the 14-minute DNS resolution delay on Monday morning. Secondary anycast DNS fallback has been established across 3 regions to guarantee zero single point of failure going forward. Full RCA details and SLA credit options are attached.',
-        timestamp: 'Yesterday',
-      },
-    ],
-  },
-]
 
 const initialState: ChatState = {
-  conversations: initialConversations,
-  activeConversationId: 'conv-new',
+  conversations: [],
+  activeConversationId: null,
+  totalConversations: 0,
+  currentPage: 1,
+  isLoadingConversations: false,
+  isLoadingMore: false,
+  isLoadingMessages: false,
   isTyping: false,
+  error: null,
 }
+
+// 1. Fetch conversations for a specific bot (with pagination & lazy-loading, auto-creates on empty)
+export const fetchBotConversations = createAsyncThunk<
+  { items: Conversation[]; total: number; page: number; append: boolean },
+  { botId: string; botName?: string; page?: number; append?: boolean }
+>(
+  'chat/fetchBotConversations',
+  async ({ botId, botName, page = 1, append = false }, { dispatch }) => {
+    const res = await conversationsApi.list(botId, page, 20)
+
+    // Requirement: if no conversation and nothing received, create first conversation object
+    if (res.items.length === 0 && page === 1) {
+      const created = await conversationsApi.create({
+        bot_id: botId,
+        title: botName ? `Chat with ${botName}` : 'Vivek Kudecha',
+        metadata: {
+          channel: 'web_chat',
+          user_locale: 'en-US',
+        },
+      })
+
+      const newConv: Conversation = {
+        id: created.id,
+        botId: created.bot_id,
+        title: created.title || (botName ? `Chat with ${botName}` : 'New Conversation'),
+        messages: [],
+        updatedAt: created.updated_at || created.created_at,
+      }
+
+      return {
+        items: [newConv],
+        total: 1,
+        page: 1,
+        append: false,
+      }
+    }
+
+    const items: Conversation[] = res.items.map((item) => ({
+      id: item.id,
+      botId: item.bot_id,
+      title: item.title || (botName ? `Chat with ${botName}` : 'Conversation'),
+      updatedAt: item.updated_at || item.created_at,
+      messages: item.messages
+        ? item.messages.map((m) => ({
+            id: m.id,
+            sender: m.role,
+            text: m.content,
+            timestamp: new Date(m.created_at).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+          }))
+        : [],
+    }))
+
+    // Automatically load messages of first conversation if page 1
+    if (items.length > 0 && !append) {
+      dispatch(fetchConversationDetails(items[0].id))
+    }
+
+    return {
+      items,
+      total: res.total,
+      page,
+      append,
+    }
+  }
+)
+
+// 2. Load the chats/messages for a single conversation: GET /api/v1/conversations/:conversation_id
+export const fetchConversationDetails = createAsyncThunk<Conversation, string>(
+  'chat/fetchConversationDetails',
+  async (conversationId) => {
+    const res = await conversationsApi.get(conversationId)
+    return {
+      id: res.id,
+      botId: res.bot_id,
+      title: res.title || 'Conversation',
+      updatedAt: res.updated_at || res.created_at,
+      messages: (res.messages || []).map((m) => ({
+        id: m.id,
+        sender: m.role,
+        text: m.content,
+        timestamp: new Date(m.created_at).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      })),
+    }
+  }
+)
+
+// 3. Create a new conversation explicitly for a bot
+export const createConversationThunk = createAsyncThunk<
+  Conversation,
+  { botId: string; title?: string }
+>('chat/createConversationThunk', async ({ botId, title }) => {
+  const created = await conversationsApi.create({
+    bot_id: botId,
+    title: title || 'New Conversation',
+    metadata: {
+      channel: 'web_chat',
+      user_locale: 'en-US',
+    },
+  })
+  return {
+    id: created.id,
+    botId: created.bot_id,
+    title: created.title || 'New Conversation',
+    messages: [],
+    updatedAt: created.updated_at || created.created_at,
+  }
+})
+
+// 4. Send chat message to backend: POST /api/v1/chat
+export const sendChatMessageThunk = createAsyncThunk<
+  { assistantMessage: ChatMessage; conversationId: string },
+  { botId: string; conversationId: string; message: string }
+>('chat/sendChatMessageThunk', async ({ botId, conversationId, message }) => {
+  const res = await chatApi.send({
+    bot_id: botId,
+    conversation_id: conversationId,
+    message,
+  })
+
+  const assistantMessage: ChatMessage = {
+    id: res.message_id || `msg-${Date.now()}`,
+    sender: 'assistant',
+    text: res.content,
+    timestamp: new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+    sources: res.sources?.map((s) => ({
+      documentId: s.document_id,
+      fileName: s.file_name,
+      page: s.page,
+      score: s.score,
+    })),
+  }
+
+  return { assistantMessage, conversationId }
+})
 
 export const chatSlice = createSlice({
   name: 'chat',
@@ -94,47 +176,11 @@ export const chatSlice = createSlice({
     setActiveConversation: (state, action: PayloadAction<string | null>) => {
       state.activeConversationId = action.payload
     },
-    startNewChatWithBot: (
-      state,
-      action: PayloadAction<{ botId: string; botName: string; initialMessage?: string }>
-    ) => {
-      const newId = `conv-${Date.now()}`
-      const newConversation: Conversation = {
-        id: newId,
-        botId: action.payload.botId,
-        title: action.payload.initialMessage
-          ? action.payload.initialMessage.slice(0, 38) + (action.payload.initialMessage.length > 38 ? '...' : '')
-          : `Chat with ${action.payload.botName}`,
-        updatedAt: new Date().toISOString(),
-        isPinned: false,
-        messages: action.payload.initialMessage
-          ? [
-              {
-                id: `msg-${Date.now()}`,
-                sender: 'user',
-                text: action.payload.initialMessage,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              },
-            ]
-          : [],
-      }
-      state.conversations.unshift(newConversation)
-      state.activeConversationId = newId
-      if (action.payload.initialMessage) {
-        state.isTyping = true
-      }
-    },
-    switchBotForConversation: (
-      state,
-      action: PayloadAction<{ conversationId: string; botId: string; botName?: string }>
-    ) => {
-      const conv = state.conversations.find((c) => c.id === action.payload.conversationId)
-      if (conv) {
-        conv.botId = action.payload.botId
-        if (conv.messages.length === 0 && action.payload.botName) {
-          conv.title = `Chat with ${action.payload.botName}`
-        }
-      }
+    clearConversations: (state) => {
+      state.conversations = []
+      state.activeConversationId = null
+      state.totalConversations = 0
+      state.currentPage = 1
     },
     addUserMessage: (
       state,
@@ -150,28 +196,8 @@ export const chatSlice = createSlice({
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         })
         conv.updatedAt = new Date().toISOString()
-        // update title if it's the first message
-        if (conv.messages.length === 1) {
-          conv.title = action.payload.text.slice(0, 38) + (action.payload.text.length > 38 ? '...' : '')
-        }
         state.isTyping = true
       }
-    },
-    addAssistantMessage: (
-      state,
-      action: PayloadAction<{ conversationId: string; text: string }>
-    ) => {
-      const conv = state.conversations.find((c) => c.id === action.payload.conversationId)
-      if (conv) {
-        conv.messages.push({
-          id: `msg-${Date.now()}`,
-          sender: 'assistant',
-          text: action.payload.text,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        })
-        conv.updatedAt = new Date().toISOString()
-      }
-      state.isTyping = false
     },
     setIsTyping: (state, action: PayloadAction<boolean>) => {
       state.isTyping = action.payload
@@ -189,14 +215,103 @@ export const chatSlice = createSlice({
       }
     },
   },
+  extraReducers: (builder) => {
+    // fetchBotConversations
+    builder
+      .addCase(fetchBotConversations.pending, (state, action) => {
+        if (action.meta.arg.append) {
+          state.isLoadingMore = true
+        } else {
+          state.isLoadingConversations = true
+        }
+        state.error = null
+      })
+      .addCase(fetchBotConversations.fulfilled, (state, action) => {
+        state.isLoadingConversations = false
+        state.isLoadingMore = false
+        state.totalConversations = action.payload.total
+        state.currentPage = action.payload.page
+
+        if (action.payload.append) {
+          // Avoid duplicate items
+          const existingIds = new Set(state.conversations.map((c) => c.id))
+          const newItems = action.payload.items.filter((item) => !existingIds.has(item.id))
+          state.conversations.push(...newItems)
+        } else {
+          state.conversations = action.payload.items
+          if (action.payload.items.length > 0) {
+            state.activeConversationId = action.payload.items[0].id
+          } else {
+            state.activeConversationId = null
+          }
+        }
+      })
+      .addCase(fetchBotConversations.rejected, (state, action) => {
+        state.isLoadingConversations = false
+        state.isLoadingMore = false
+        state.error = action.error.message || 'Failed to fetch conversations'
+      })
+
+    // fetchConversationDetails
+    builder
+      .addCase(fetchConversationDetails.pending, (state) => {
+        state.isLoadingMessages = true
+      })
+      .addCase(fetchConversationDetails.fulfilled, (state, action) => {
+        state.isLoadingMessages = false
+        const idx = state.conversations.findIndex((c) => c.id === action.payload.id)
+        if (idx >= 0) {
+          state.conversations[idx] = action.payload
+        } else {
+          state.conversations.unshift(action.payload)
+        }
+        state.activeConversationId = action.payload.id
+      })
+      .addCase(fetchConversationDetails.rejected, (state) => {
+        state.isLoadingMessages = false
+      })
+
+    // createConversationThunk
+    builder.addCase(createConversationThunk.fulfilled, (state, action) => {
+      state.conversations.unshift(action.payload)
+      state.activeConversationId = action.payload.id
+      state.totalConversations += 1
+    })
+
+    // sendChatMessageThunk
+    builder
+      .addCase(sendChatMessageThunk.pending, (state) => {
+        state.isTyping = true
+      })
+      .addCase(sendChatMessageThunk.fulfilled, (state, action) => {
+        state.isTyping = false
+        const conv = state.conversations.find((c) => c.id === action.payload.conversationId)
+        if (conv) {
+          conv.messages.push(action.payload.assistantMessage)
+          conv.updatedAt = new Date().toISOString()
+        }
+      })
+      .addCase(sendChatMessageThunk.rejected, (state, action) => {
+        state.isTyping = false
+        if (state.activeConversationId) {
+          const conv = state.conversations.find((c) => c.id === state.activeConversationId)
+          if (conv) {
+            conv.messages.push({
+              id: `err-${Date.now()}`,
+              sender: 'assistant',
+              text: `⚠️ Error: ${action.error.message || 'Failed to generate response. Please try again.'}`,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            })
+          }
+        }
+      })
+  },
 })
 
 export const {
   setActiveConversation,
-  startNewChatWithBot,
-  switchBotForConversation,
+  clearConversations,
   addUserMessage,
-  addAssistantMessage,
   setIsTyping,
   deleteConversation,
   togglePinConversation,

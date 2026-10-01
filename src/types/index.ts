@@ -15,11 +15,30 @@ export interface Bot {
   systemInstruction: string
   avatar: string
   category: 'Enterprise' | 'Engineering' | 'Operations' | 'Finance & Legal' | 'Custom'
+  welcomeMessage?: string
+  visibility?: 'private' | 'organization' | 'public'
   badge?: string
   knowledgeFiles?: AttachedFile[]
   suggestedPrompts: string[]
   isCustom?: boolean
   createdAt?: string
+}
+
+export interface CreateBotApiPayload {
+  name: string
+  description?: string
+  system_instruction: string
+  welcome_message?: string
+  conversation_starters?: string[]
+  visibility?: 'private' | 'organization' | 'public'
+  files?: File[]
+}
+
+export interface ChatSource {
+  documentId: string
+  fileName: string
+  page?: number
+  score?: number
 }
 
 export interface ChatMessage {
@@ -28,6 +47,7 @@ export interface ChatMessage {
   text: string
   timestamp: string
   files?: AttachedFile[]
+  sources?: ChatSource[]
 }
 
 export interface Conversation {

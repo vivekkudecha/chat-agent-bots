@@ -1,19 +1,20 @@
 import React, { useState } from 'react'
-import { FileText, Info, PlusCircle } from 'lucide-react'
+import { FileText, Info, PlusCircle, ArrowLeft } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { useAppDispatch } from '@/app/hooks'
-import { startNewChatWithBot } from '@/features/chat/chatSlice'
+import { createConversationThunk } from '@/features/chat/chatSlice'
 import type { Bot, Conversation } from '@/types'
 
 interface ChatHeaderProps {
   bot?: Bot
   conversation?: Conversation
+  onBackToHub?: () => void
 }
 
-export const ChatHeader: React.FC<ChatHeaderProps> = ({ bot }) => {
+export const ChatHeader: React.FC<ChatHeaderProps> = ({ bot, onBackToHub }) => {
   const dispatch = useAppDispatch()
   const [showPromptModal, setShowPromptModal] = useState(false)
   const [showFilesModal, setShowFilesModal] = useState(false)
@@ -23,15 +24,27 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ bot }) => {
 
   const handleNewChat = () => {
     if (bot) {
-      dispatch(startNewChatWithBot({ botId: bot.id, botName: bot.name }))
+      dispatch(createConversationThunk({ botId: bot.id, title: `Chat with ${bot.name}` }))
     }
   }
 
   return (
     <>
       <div className="h-14 px-4 sm:px-6 bg-white border-b border-zinc-200 flex items-center justify-between shrink-0">
-        {/* Left: Bot identity */}
-        <div className="flex items-center gap-3 min-w-0">
+        {/* Left: Back button + Bot identity */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {onBackToHub && (
+            <button
+              type="button"
+              onClick={onBackToHub}
+              className="p-1.5 -ml-1 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+              title="Back to Bot Selection"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Agents</span>
+            </button>
+          )}
+
           <div className="flex items-center gap-2.5 min-w-0">
             <Avatar fallback={bot?.avatar || 'AI'} size="md" status="online" />
             <div className="min-w-0">

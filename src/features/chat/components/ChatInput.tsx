@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { ArrowUp, Paperclip, X, FileText } from 'lucide-react'
 import { useAppDispatch } from '@/app/hooks'
-import { addUserMessage, addAssistantMessage, setIsTyping } from '@/features/chat/chatSlice'
+import { addUserMessage, sendChatMessageThunk } from '@/features/chat/chatSlice'
 import type { AttachedFile, Bot, Conversation } from '@/types'
 
 interface ChatInputProps {
@@ -59,32 +59,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       })
     )
 
-    // 2. Simulate AI response tailored to bot persona
-    dispatch(setIsTyping(true))
-    setTimeout(() => {
-      let reply = ''
-      const botName = bot?.name || 'Assistant'
-      const attachedSummary = filesToSend.length > 0
-        ? `I have reviewed the attached document(s): **${filesToSend.map((f) => f.name).join(', ')}**.\n\n`
-        : ''
-
-      if (bot?.id === 'bot-org-2') {
-        reply = `${attachedSummary}Here is the engineering assessment regarding: "${userText}":\n\n- **Modularity & Decoupling**: Ensure logic is encapsulated in isolated services.\n- **Error Boundaries**: Wrap critical async thunks with predictable fallback states.\n- **Verification**: Verified zero memory leaks or unhandled promise rejections.`
-      } else if (bot?.id === 'bot-org-1') {
-        reply = `${attachedSummary}I have analyzed the customer context for "${userText}". Here is the recommended mitigation action plan:\n\n1. Acknowledge customer impact immediately with SLA timestamp verification.\n2. Apply appropriate credit policy according to Tier-1 enterprise clauses.\n3. Schedule technical review call with customer engineering stakeholders.`
-      } else if (bot?.isCustom) {
-        reply = `${attachedSummary}As **${botName}** with instructions: *"${bot.systemInstruction.slice(0, 70)}..."*:\n\nBased on your prompt "${userText}", I have processed the relevant data points and confirmed consistency with the knowledge base.`
-      } else {
-        reply = `${attachedSummary}Thank you for your message. As **${botName}**, I have examined your request regarding "${userText}". All system guidelines and constraints have been verified.`
-      }
-
+    // 2. Call backend chat API via sendChatMessageThunk
+    if (bot) {
       dispatch(
-        addAssistantMessage({
+        sendChatMessageThunk({
+          botId: bot.id,
           conversationId: conversation.id,
-          text: reply,
+          message: userText,
         })
       )
-    }, 900)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

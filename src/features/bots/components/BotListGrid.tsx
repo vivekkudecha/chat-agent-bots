@@ -8,22 +8,16 @@ import { setActiveCategory, setSearchQuery } from '@/features/bots/botsSlice'
 
 export const BotListGrid: React.FC = () => {
   const dispatch = useAppDispatch()
-  const { organizationBots, customBots, activeCategory, searchQuery } = useAppSelector(
+  const { actualBots, activeCategory, searchQuery } = useAppSelector(
     (state) => state.bots
   )
 
   const categories = [
     'All',
-    'Enterprise',
-    'Engineering',
-    'Operations',
-    'Finance & Legal',
     'Custom',
   ]
 
-  const allBots = useMemo(() => {
-    return [...organizationBots, ...customBots]
-  }, [organizationBots, customBots])
+  const allBots = actualBots
 
   const filteredBots = useMemo(() => {
     return allBots.filter((bot) => {
